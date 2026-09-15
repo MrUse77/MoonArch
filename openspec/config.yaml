@@ -10,8 +10,8 @@ context: |
     - Shell: Zsh + Oh My Posh
     - Editor: Neovim (submodule: MrUse77/Nvim-config)
     - Desktop shell: Selene (Quickshell, submodule: MrUse77/Selene-Shell) — bar, launcher, notifications, OSD, session menu, dashboard
-      - Dormant fallbacks: Waybar and Rofi stay installed and configured; nothing autostarts them
-      - Retired: Eww and Dunst configuration and packages were removed
+      - Retired: Eww, Dunst, Waybar and Rofi configuration removed; Eww, Wlogout, Waybar and Rofi packages dropped from the installer
+      - Kept: the 13 waybar.css bundle fragments (Selene derives its tokens from them) and the Waybar reload branch in theme-selector
     - File manager: Thunar + Yazi
     - Theme: TokyoNight
     - Installer CLI: Go 1.26.5, Cobra, Charmbracelet Huh/Bubbletea

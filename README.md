@@ -26,8 +26,7 @@ Configuración personal para Arch Linux con Hyprland.
 | Cursor | volantes_cursors |
 
 > Selene cubre barra, lanzador, notificaciones, OSD, menú de sesión y dashboard.
-> Rofi sigue instalado y configurado pero dormido: nada lo arranca y existe como
-> vía de rollback. Eww, Dunst y Waybar fueron retirados del repo. Los fragmentos
+> Eww, Dunst, Waybar y Rofi fueron retirados del repo. Los fragmentos
 > `waybar.css` de los bundles **se mantienen**: Selene deriva sus tokens de ahí.
 
 ---
@@ -40,7 +39,6 @@ Configuración personal para Arch Linux con Hyprland.
 - Conexión a internet
 - `quickshell-git` desde AUR — shell de escritorio Selene (`qs -c selene`)
 - Hack Nerd Font instalada (iconos y tipografía de la barra)
-- `rofi-wayland` — solo para el picker sin argumentos del selector de temas
 
 > El flujo rápido no requiere Go ni Git: baja el binario ya compilado. En una máquina sin git, el propio instalador lo instala (con tu confirmación) antes de clonar el repo. La instalación manual de abajo sí necesita Go.
 
@@ -132,7 +130,7 @@ Las configuraciones consumidoras leen sus fragmentos a través de `current`; no 
 ~/.local/bin/moonarch/theme-selector <theme-id>
 ```
 
-Ejecutar el selector sin un ID abre su propio picker sobre Rofi. Hyprland, Waybar y Selene recargan tras un cambio exitoso; Ghostty lee el fragmento seleccionado al abrir una terminal nueva.
+Ejecutar el selector sin argumentos abre el picker de temas de Selene. Hyprland y Selene recargan tras un cambio exitoso; Ghostty lee el fragmento seleccionado al abrir una terminal nueva.
 
 ### Atajos del escritorio
 
@@ -254,7 +252,6 @@ dotfiles/
 │   │   ├── hypr/           # Hyprland, hyprlock, hyprpaper, hypridle, hyprsunset
 │   │   ├── nvim/           # Config de Neovim (submodule → MrUse77/Nvim-config)
 │   │   ├── quickshell/     # Shell de escritorio Selene (submodule → MrUse77/Selene-Shell)
-│   │   ├── rofi/           # Picker sin argumentos del selector de temas
 │   │   ├── yazi/
 │   │   └── zellij/
 │   ├── .local/
@@ -282,9 +279,8 @@ dotfiles/
 ```
 
 > Las configuraciones de `wofi`, `nwg-drawer`, `nwg-dock-hyprland`, `eww`,
-> `dunst` y `waybar` fueron eliminadas del repo. El shell de escritorio vive
-> ahora en `home/.config/quickshell/selene/`; `rofi/` queda como picker del
-> selector de temas.
+> `dunst`, `waybar` y `rofi` fueron eliminadas del repo. El shell de escritorio
+> vive ahora en `home/.config/quickshell/selene/`.
 
 ---
 
