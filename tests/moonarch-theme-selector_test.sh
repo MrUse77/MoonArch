@@ -318,7 +318,6 @@ fi
 if grep -rIiq --exclude-dir=selene -e eww -e dunst "$repo_root/home"; then
     fail 'A tracked configuration still references a retired widget host or notification daemon'
 fi
-grep -Fqx '@import url("../../.local/share/moonarch/themes/current/waybar.css");' "$repo_root/home/.config/waybar/style.css" || fail 'Waybar does not import the current theme'
 grep -Fqx 'config-file = "~/.local/share/moonarch/themes/current/ghostty.conf"' "$repo_root/home/.config/ghostty/config" || fail 'Ghostty does not import the current theme'
 if grep -Eq '^[[:space:]]*config-file[[:space:]]*=' "$repo_root/home/.config/ghostty/config-clean"; then
     fail 'Ghostty clean profile must inherit the default theme without overriding config-file'
