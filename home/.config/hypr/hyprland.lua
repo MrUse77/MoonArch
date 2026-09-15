@@ -58,11 +58,7 @@ end
 -- Set programs that you use
 local terminal = "ghostty"
 local fileManager = "thunar"
-local rofi = os.getenv("HOME") .. "/.config/rofi/scripts/launch"
-local menu = rofi .. " -modes drun,window -no-sidebar-mode -show drun -theme-str 'mainbox { children: [inputbar, mode-switcher, listview, message]; }'"
-local windowMenu = rofi .. " -show window"
-local runMenu = rofi .. " -show run"
-local powerMenu = os.getenv("HOME") .. "/.config/rofi/scripts/launch-powermenu"
+local seleneIpc = "qs -c selene ipc call selene "
 
 -------------------
 ---- AUTOSTART ----
@@ -74,7 +70,7 @@ local powerMenu = os.getenv("HOME") .. "/.config/rofi/scripts/launch-powermenu"
 hl.on("hyprland.start", function()
 	hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP")
 	hl.exec_cmd(
-		"/usr/lib/hyprpolkitagent/hyprpolkitagent & waybar & eww daemon & hyprctl setcursor volantes_cursors 24 & dunst & hyprsunset"
+		"/usr/lib/hyprpolkitagent/hyprpolkitagent & hyprctl setcursor volantes_cursors 24 & qs -c selene & hyprsunset"
 	)
 	hl.exec_cmd("hyprpm reload -n & hyprpaper & corectrl & /usr/lib/xdg-desktop-portal-hyprland")
 end)
@@ -371,10 +367,10 @@ hl.bind(mainMod .. " + Q", hl.dsp.window.close())
 hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("exit"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(menu))
-hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd(windowMenu))
-hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(runMenu))
-hl.bind(mainMod .. " + SHIFT + X", hl.dsp.exec_cmd(powerMenu))
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(seleneIpc .. "openApps"))
+hl.bind(mainMod .. " + Tab", hl.dsp.exec_cmd(seleneIpc .. "openWindows"))
+hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(seleneIpc .. "openRun"))
+hl.bind(mainMod .. " + SHIFT + X", hl.dsp.exec_cmd(seleneIpc .. "togglePower"))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo()) -- dwindle
 -- hl.bind(mainMod .. " + J",           hl.dsp.layout("togglesplit")) -- dwindle
 hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
@@ -391,9 +387,9 @@ hl.bind(
 	hl.dsp.exec_cmd("ghostty --config-file=" .. os.getenv("HOME") .. "/.config/ghostty/config-clean -e sudo yazi")
 )
 
--- MoonArch theme selector — phase 2 will wire this properly
-hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/bin/moonarch/theme-selector"))
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.config/eww/scripts/usrctl.sh")) -- Control center eww
+-- MoonArch theme selector, using Selene's validated searchable picker.
+hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd(seleneIpc .. "openThemes"))
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(seleneIpc .. "toggleDashboard")) -- Control center Selene
 
 -- Move focus with mainMod + arrow keys
 hl.bind(mainMod .. " + left", hl.dsp.focus({ direction = "left" }))

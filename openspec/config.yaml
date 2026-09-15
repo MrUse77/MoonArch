@@ -9,8 +9,9 @@ context: |
     - Terminal: Ghostty + Zellij
     - Shell: Zsh + Oh My Posh
     - Editor: Neovim (submodule: MrUse77/Nvim-config)
-    - Bar: Waybar
-    - Notifications: Dunst
+    - Desktop shell: Selene (Quickshell, submodule: MrUse77/Selene-Shell) — bar, launcher, notifications, OSD, session menu, dashboard
+      - Dormant fallbacks: Waybar and Rofi stay installed and configured; nothing autostarts them
+      - Retired: Eww and Dunst configuration and packages were removed
     - File manager: Thunar + Yazi
     - Theme: TokyoNight
     - Installer CLI: Go 1.26.5, Cobra, Charmbracelet Huh/Bubbletea

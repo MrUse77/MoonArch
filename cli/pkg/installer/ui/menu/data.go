@@ -32,9 +32,10 @@ func DefaultCategories() []Category {
 				{Name: "hypridle", Description: "Idle management daemon", Selected: true},
 				{Name: "hyprsunset", Description: "Blue light filter", Selected: true},
 				{Name: "hyprpolkitagent", Description: "Polkit authentication agent", Selected: true},
-				{Name: "waybar", Description: "Status bar", Selected: true},
+				{Name: "aur/quickshell-git", Description: "Desktop shell: bar, launcher, notifications (Selene)", Selected: true},
+				{Name: "aur/waybar-git", Description: "Status bar (Selene fallback)", Selected: true},
 				{Name: "rofi", Description: "Application launcher & dmenu replacement", Selected: true},
-				{Name: "dunst", Description: "Notification daemon", Selected: true},
+				{Name: "dunst", Description: "Notification daemon (dormant: Selene owns the notifications bus)", Selected: true},
 				{Name: "xdg-desktop-portal-hyprland", Description: "Screencast & screen sharing", Selected: true},
 				{Name: "xdg-desktop-portal-gtk", Description: "File picker portal", Selected: true},
 				{Name: "nwg-look", Description: "GTK settings editor", Selected: true},
@@ -73,14 +74,12 @@ func DefaultCategories() []Category {
 		{
 			Key:         plan.GroupTheming,
 			Title:       "Theming & Appearance",
-			Description: "GTK/Qt themes, icons, prompt, and widgets.",
+			Description: "GTK/Qt themes, icons, and prompt.",
 			Packages: []Package{
 				{Name: "qt5ct", Description: "Qt5 theme configuration", Selected: true},
 				{Name: "qt6ct", Description: "Qt6 theme configuration", Selected: true},
 				{Name: "kvantum", Description: "SVG-based Qt theming engine", Selected: true},
 				{Name: "oh-my-posh-bin", Description: "Cross-shell prompt", Selected: true},
-				{Name: "aur/eww", Description: "Elkowar's wacky widgets", Selected: true},
-				{Name: "aur/wlogout", Description: "Wayland logout menu", Selected: true},
 			},
 		},
 		{

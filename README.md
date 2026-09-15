@@ -18,14 +18,16 @@ Configuración personal para Arch Linux con Hyprland.
 |---|---|
 | Compositor | Hyprland |
 | Terminal | Ghostty + Zellij |
-| Shell | Zsh + Oh My Posh |
+| Shell de login | Zsh + Oh My Posh |
+| Shell de escritorio | Selene (Quickshell) |
 | Editor | Neovim |
-| Bar | Waybar |
-| Lanzador | Rofi |
-| Notificaciones | Dunst |
 | Gestor de archivos | Thunar + Yazi |
 | Tema | TokyoNight |
 | Cursor | volantes_cursors |
+
+> Selene cubre barra, lanzador, notificaciones, OSD, menú de sesión y dashboard.
+> Waybar y Rofi siguen instalados y configurados pero dormidos: nada los arranca
+> y existen como vía de rollback. Eww y Dunst fueron retirados del repo.
 
 ---
 
@@ -35,9 +37,9 @@ Configuración personal para Arch Linux con Hyprland.
 
 - Arch Linux (o derivado)
 - Conexión a internet
-- `rofi-wayland` instalado (lanzador unificado)
-- Hack Nerd Font instalada (iconos y tipografía del menú)
-- Calculadora opcional: `rofi-calc-wayland` (o equivalente) junto con `libqalculate`
+- `quickshell-git` desde AUR — shell de escritorio Selene (`qs -c selene`)
+- Hack Nerd Font instalada (iconos y tipografía de la barra)
+- `rofi-wayland` — solo para el picker sin argumentos del selector de temas
 
 > El flujo rápido no requiere Go ni Git: baja el binario ya compilado. En una máquina sin git, el propio instalador lo instala (con tu confirmación) antes de clonar el repo. La instalación manual de abajo sí necesita Go.
 
@@ -123,25 +125,27 @@ La instalación normal despliega el selector MoonArch en `~/.local/bin/moonarch/
 ~/.local/share/moonarch/themes/current -> tokyo-night
 ```
 
-Las configuraciones consumidoras leen sus fragmentos a través de `current`; no reemplaces este link por una ruta absoluta ni edites el contenido de los bundles. Presioná `Super+Shift+T` para abrir Rofi y elegir un nombre de tema válido, o ejecutá el selector directamente:
+Las configuraciones consumidoras leen sus fragmentos a través de `current`; no reemplaces este link por una ruta absoluta ni edites el contenido de los bundles. Presioná `Super+Shift+T` para abrir el selector de temas de Selene y elegir un nombre válido, o ejecutá el selector directamente:
 
 ```bash
 ~/.local/bin/moonarch/theme-selector <theme-id>
 ```
 
-Ejecutar el selector sin un ID lista los bundles válidos en Rofi. Hyprland y Waybar recargan tras un cambio exitoso; Ghostty lee el fragmento seleccionado al abrir una terminal nueva.
+Ejecutar el selector sin un ID abre su propio picker sobre Rofi. Hyprland, Waybar y Selene recargan tras un cambio exitoso; Ghostty lee el fragmento seleccionado al abrir una terminal nueva.
 
-### Atajos de Rofi
+### Atajos del escritorio
 
 | Atajo | Acción |
 |---|---|
-| `Super + M` | Abre el lanzador de aplicaciones (Rofi `drun`) |
-| `Super + Tab` | Cambia entre ventanas abiertas (Rofi `window`) |
-| `Super + R` | Ejecuta comandos / calculadora (Rofi `run` / `calc`) |
-| `Super + Shift + X` | Abre el menú de sesión (Rofi `powermenu`) |
+| `Super + M` | Abre el lanzador de aplicaciones (Selene `openApps`) |
+| `Super + Tab` | Cambia entre ventanas abiertas (Selene `openWindows`) |
+| `Super + R` | Ejecuta comandos (Selene `openRun`) |
+| `Super + Shift + X` | Abre el menú de sesión (Selene `togglePower`) |
+| `Super + N` | Abre el dashboard (Selene `toggleDashboard`) |
+| `Super + Shift + T` | Abre el selector de temas (Selene `openThemes`) |
 
-> La calculadora depende del plugin `calc` de Rofi. Si no está disponible,
-> `Super + R` sigue abriendo el modo `run` normalmente.
+> El lanzador incluye calculadora propia: escribí `=` seguido de la expresión y
+> `Enter` copia el resultado.
 
 ### Rollback de tema
 
@@ -243,17 +247,16 @@ Recuperación ante fallos:
 dotfiles/
 ├── home/                # Espejo exacto del $HOME versionado (paquete stow)
 │   ├── .config/
-│   │   ├── dunst/          # Notificaciones
-│   │   ├── eww/            # Widgets
 │   │   ├── ghostty/        # Terminal
 │   │   ├── gtk-3.0/        # Tema GTK3
 │   │   ├── gtk-4.0/        # Tema GTK4
 │   │   ├── hypr/           # Hyprland, hyprlock, hyprpaper, hypridle, hyprsunset
-│   │   │   └── scripts/    # Scripts de autostart
 │   │   ├── nvim/           # Config de Neovim (submodule → MrUse77/Nvim-config)
-│   │   ├── waybar/
-│   │   ├── rofi/             # Lanzador y menú de sesión
-│   │   │   ├── style.css
+│   │   ├── quickshell/     # Shell de escritorio Selene (submodule → MrUse77/Selene-Shell)
+│   │   ├── rofi/           # Picker sin argumentos del selector de temas
+│   │   ├── waybar/         # Dormido: fallback de la barra
+│   │   │   ├── config.jsonc
+│   │   │   ├── style.css   # @import del fragmento waybar.css del tema activo
 │   │   │   └── colors.css  # Variables de color (temas dinámicos)
 │   │   ├── yazi/
 │   │   └── zellij/
@@ -281,9 +284,10 @@ dotfiles/
 └── hyde_theme_palettes.txt  # Paletas HyDE (referencia)
 ```
 
-> Las configuraciones de `wofi`, `nwg-drawer` y `nwg-dock-hyprland` fueron
-> eliminadas del repo. El lanzador y menú de sesión unificados viven ahora en
-> `home/.config/rofi/`.
+> Las configuraciones de `wofi`, `nwg-drawer`, `nwg-dock-hyprland`, `eww` y
+> `dunst` fueron eliminadas del repo. El shell de escritorio vive ahora en
+> `home/.config/quickshell/selene/`; `waybar/` y `rofi/` quedan como fallback
+> dormido y como picker del selector de temas.
 
 ---
 
@@ -294,6 +298,8 @@ Este repo usa **git submodules** para manejar repos externos sin duplicar códig
 | Path | Repo | Descripción |
 |---|---|---|
 | `home/.config/nvim` | `MrUse77/Nvim-config` | Config personal de Neovim |
+| `home/.config/quickshell/selene` | `MrUse77/Selene-Shell` | Shell de escritorio Selene (Quickshell) |
+| `home/.config/hypr/plugins/split-monitor-workspaces` | `zjeffer/split-monitor-workspaces` | Workspaces por monitor (hyprpm) |
 | `home/.zsh_plugins/fzf-tab` | `Aloxaf/fzf-tab` | Completado con fzf |
 | `home/.zsh_plugins/zsh-autosuggestions` | `zsh-users/zsh-autosuggestions` | Sugerencias inline |
 | `home/.zsh_plugins/zsh-history-substring-search` | `zsh-users/zsh-history-substring-search` | Búsqueda en historial |

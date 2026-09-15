@@ -10,6 +10,11 @@ echo "================================================="
 bash "$repo_root/tests/moonarch-theme-palette_test.sh"
 
 echo "================================================="
+echo "  Validating the MoonArch theme selector contract"
+echo "================================================="
+bash "$repo_root/tests/moonarch-theme-selector_test.sh"
+
+echo "================================================="
 echo "  Building isolated Arch Linux test environment"
 echo "================================================="
 docker build -t "$image" -f "$repo_root/Dockerfile.test" "$repo_root"

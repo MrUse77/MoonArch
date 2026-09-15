@@ -145,12 +145,12 @@
   "custom/power": {
     "format": "<span size='15pt'>⏻</span>", // Icono (necesitas una fuente como FontAwesome o NerdFonts)
     "tooltip": false,
-    "on-click": "$HOME/.config/rofi/scripts/launch -show powermenu"
+    "on-click": "qs -c selene ipc call selene togglePower"
   },
   "custom/notification": {
     "tooltip": false,
     "format": "󰵅",
-    "on-click": "$HOME/.config/eww/scripts/usrctl.sh" // Toggle del panel lateral
+    "on-click": "qs -c selene ipc call selene toggleDashboard" // Toggle del panel de control
   },
       "custom/sep": {
         "format": "·", // Separador sutil
@@ -166,7 +166,7 @@
   },
   "custom/launcher": {
     "format": "",
-    "on-click": "$HOME/.config/rofi/scripts/launch -show drun",
+    "on-click": "qs -c selene ipc call selene openApps",
     "tooltip": false
   }
 }
