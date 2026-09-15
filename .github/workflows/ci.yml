@@ -54,6 +54,7 @@ jobs:
               - 'Dockerfile.test'
               - 'test.sh'
               - 'tests/moonarch-theme-palette_test.sh'
+              - 'tests/moonarch-theme-selector_test.sh'
               - 'tests/release-bridge_test.sh'
               - '.github/workflows/release.yml'
               - '.github/workflows/ci.yml'
