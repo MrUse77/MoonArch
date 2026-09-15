@@ -1,0 +1,4 @@
+# This change retires configuration and installable entries; it modifies no spec.
+# Verified: no file under openspec/specs/ mentions eww, wlogout or dunst.
+schema: spec-driven
+skip_specs: true

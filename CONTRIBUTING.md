@@ -72,11 +72,11 @@ main (protegida)
 
 | Tipo | Uso | Ejemplo |
 |---|---|---|
-| `feat/` | Nueva funcionalidad | `feat/waybar-battery-module` |
+| `feat/` | Nueva funcionalidad | `feat/selene-battery-widget` |
 | `fix/` | Corrección de bug | `fix/hyprland-monitor-config` |
 | `docs/` | Documentación | `docs/update-readme-stack` |
 | `chore/` | Mantenimiento, refactors, CI | `chore/update-nvim-submodule` |
-| `style/` | Cambios visuales/estéticos | `style/waybar-tokyonight-colors` |
+| `style/` | Cambios visuales/estéticos | `style/selene-tokyonight-colors` |
 | `test/` | Agregar o mejorar tests | `test/installer-rollback` |
 
 ### Ejemplos inválidos
@@ -127,12 +127,9 @@ Usamos [Conventional Commits](https://www.conventionalcommits.org/) en español 
 | Scope | Aplica a |
 |---|---|
 | `hypr` | `home/.config/hypr/` — Hyprland, hyprlock, hyprpaper, hypridle |
-| `waybar` | `home/.config/waybar/` |
+| `selene` | `home/.config/quickshell/selene/` (submodule) |
 | `ghostty` | `home/.config/ghostty/` |
 | `zellij` | `home/.config/zellij/` |
-| `dunst` | `home/.config/dunst/` |
-| `eww` | `home/.config/eww/` |
-| `wofi` | `home/.config/wofi/` |
 | `yazi` | `home/.config/yazi/` |
 | `nvim` | `home/.config/nvim/` (submodule) |
 | `gtk` | `home/.config/gtk-3.0/`, `home/.config/gtk-4.0/`, `home/.gtkrc-2.0`, `home/.themes/` |
@@ -149,7 +146,7 @@ Usamos [Conventional Commits](https://www.conventionalcommits.org/) en español 
 
 ```bash
 # ✅ Buenos
-feat(waybar): add battery module with percentage display
+feat(selene): add battery widget to the dashboard
 fix(hypr): correct monitor scaling for 1440p
 docs(installer): document rollback procedure
 chore(zsh): update fzf-tab submodule to latest
@@ -191,8 +188,8 @@ Breve descripción de qué se modificó y por qué.
 
 ## Archivos afectados
 
-- `home/.config/waybar/config.jsonc` — agregar módulo de batería
-- `home/.config/waybar/style.css` — estilos del nuevo módulo
+- `home/.config/quickshell/selene/Modules/Bar/BatteryWidget.qml` — widget de batería
+- `home/.config/quickshell/selene/Services/Battery.qml` — lectura del estado
 
 ## Testing
 
@@ -304,7 +301,7 @@ cd cli && go test ./... && go vet ./...
 
 ```bash
 # 1. Crear branch con nombre correcto
-git checkout -b feat/waybar-battery-module
+git checkout -b feat/selene-battery-widget
 
 # 2. Hacer cambios MÍNIMOS y NECESARIOS
 # ... editar archivos ...
@@ -314,11 +311,11 @@ git diff --name-only
 git diff --submodule  # debe estar vacío si no se tocaron submodules
 
 # 4. Commit con formato correcto
-git add home/.config/waybar/config.jsonc home/.config/waybar/style.css
-git commit -m "feat(waybar): add battery module with percentage display"
+git add home/.config/quickshell/selene/Modules/Bar/BatteryWidget.qml
+git commit -m "feat(selene): add battery widget to the dashboard"
 
 # 5. Push y crear PR
-git push -u origin feat/waybar-battery-module
+git push -u origin feat/selene-battery-widget
 ```
 
 ### Ejemplo de flujo INCORRECTO

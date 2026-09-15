@@ -3,7 +3,6 @@ set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 themes_root="$repo_root/home/.local/share/moonarch/themes"
-style_file="$repo_root/home/.config/waybar/style.css"
 clean_ghostty="$repo_root/home/.config/ghostty/config-clean"
 
 protected_paths=(
@@ -11,7 +10,6 @@ protected_paths=(
     home/.local/share/moonarch/themes/tokyo-night/hyprland.conf
     home/.local/share/moonarch/themes/tokyo-night/manifest.toml
     home/.local/share/moonarch/themes/tokyo-night/waybar.css
-    home/.local/share/moonarch/themes/tokyo-night/rofi.rasi
     Temas/Tokyo_Night/paleta.txt
 )
 protected_files=(
@@ -19,7 +17,6 @@ protected_files=(
     home/.local/share/moonarch/themes/tokyo-night/hyprland.conf
     home/.local/share/moonarch/themes/tokyo-night/manifest.toml
     home/.local/share/moonarch/themes/tokyo-night/waybar.css
-    home/.local/share/moonarch/themes/tokyo-night/rofi.rasi
     Temas/Tokyo_Night/paleta.txt
 )
 
@@ -29,7 +26,6 @@ declare -A protected_file_hashes=(
     [home/.local/share/moonarch/themes/tokyo-night/hyprland.conf]=247001b754aad47ce14e9610e181946b96fea84a
     [home/.local/share/moonarch/themes/tokyo-night/manifest.toml]=45309b48d1ce282093fe64adb8ebb582d2983794
     [home/.local/share/moonarch/themes/tokyo-night/waybar.css]=2b39a86a7c986c48581e6d8aac83d6dc8ff3e830
-    [home/.local/share/moonarch/themes/tokyo-night/rofi.rasi]=75dbdc802554136deef7fc9f7cb4b6375c3d4bca
     [Temas/Tokyo_Night/paleta.txt]=b51e9ab96664bd55b26cca8d5b9f59ff9a5c0080
 )
 
@@ -297,109 +293,6 @@ assert_mapping() {
         fail "$description differs: expected '$expected', got '$actual'"
     }
 }
-
-
-    fragment_rasi_value() {
-        local fragment="$1"
-        local key="$2"
-
-        awk -v wanted_key="$key" '
-            function trim(value) {
-                sub(/^[[:space:]]+/, "", value)
-                sub(/[[:space:]]+$/, "", value)
-                return value
-            }
-            /^[[:space:]]*\*/ {
-                in_block = 1
-                next
-            }
-            !in_block { next }
-            /^[[:space:]]*}/ {
-                in_block = 0
-                next
-            }
-            {
-                line = trim($0)
-                separator = index(line, ":")
-                if (!separator) { next }
-                setting = trim(substr(line, 1, separator - 1))
-                if (setting != wanted_key) { next }
-                value = trim(substr(line, separator + 1))
-                sub(/;$/, "", value)
-                if (value != "") {
-                    print value
-                }
-            }
-        ' "$fragment"
-    }
-
-assert_rule_uses() {
-    local selector="$1"
-    local alias="$2"
-
-    awk -v wanted_selector="$selector" -v wanted_alias="$alias" '
-        function strip_comments(line, start, end, prefix, rest) {
-            while (1) {
-                if (in_comment) {
-                    end = index(line, "*/")
-                    if (!end) {
-                        return ""
-                    }
-                    line = substr(line, end + 2)
-                    in_comment = 0
-                }
-                start = index(line, "/*")
-                if (!start) {
-                    return line
-                }
-                prefix = substr(line, 1, start - 1)
-                rest = substr(line, start + 2)
-                end = index(rest, "*/")
-                if (!end) {
-                    in_comment = 1
-                    return prefix
-                }
-                line = prefix substr(rest, end + 2)
-            }
-        }
-        function contains_token(line, token, position, before, after, remainder) {
-            remainder = line
-            while ((position = index(remainder, token)) != 0) {
-                before = ""
-                if (position > 1) {
-                    before = substr(remainder, position - 1, 1)
-                }
-                after = substr(remainder, position + length(token), 1)
-                if ((before == "" || before !~ /[[:alnum:]_-]/) &&
-                    (after == "" || after !~ /[[:alnum:]_-]/)) {
-                    return 1
-                }
-                remainder = substr(remainder, position + length(token))
-            }
-            return 0
-        }
-        BEGIN { result = 1 }
-        {
-            line = strip_comments($0)
-        }
-        !in_rule && contains_token(line, wanted_selector) {
-            in_rule = 1
-            found_alias = 0
-        }
-        in_rule && contains_token(line, wanted_alias) {
-            found_alias = 1
-        }
-        in_rule && line ~ /^[[:space:]]*}/ {
-            if (found_alias) {
-                result = 0
-                exit
-            }
-            in_rule = 0
-        }
-        END { exit result }
-    ' "$style_file" || fail "rule '$selector' does not use $alias"
-}
-
 assert_ghostty_clean_config() {
     local config_file_count=0
     local value key override_count override_values
@@ -470,7 +363,7 @@ declare -A source_dirs=(
 verify_bundle_contract() {
     local actual_count=0
     local bundle id source_file file index cursor_text
-    local required_files=(manifest.toml hyprland.conf hyprland.lua waybar.css rofi.rasi ghostty.conf)
+    local required_files=(manifest.toml hyprland.conf hyprland.lua waybar.css ghostty.conf)
     local aliases=(text_main bg_dark accent_blue urgent_red)
 
     [[ -L "$themes_root/current" ]] || fail 'current theme is not a symlink'
@@ -531,19 +424,6 @@ verify_bundle_contract() {
             "$(source_value "$source_file" 'Kitty Terminal' color1)" \
             "$(fragment_define_value "$bundle/waybar.css" urgent_red)"
 
-            assert_mapping "$id Rofi background" \
-                "$(source_value "$source_file" Rofi main-bg)" \
-                "$(fragment_rasi_value "$bundle/rofi.rasi" moonarch-background)"
-            assert_mapping "$id Rofi foreground" \
-                "$(source_value "$source_file" Rofi main-fg)" \
-                "$(fragment_rasi_value "$bundle/rofi.rasi" moonarch-foreground)"
-            assert_mapping "$id Rofi surface" \
-                "$(source_value "$source_file" Waybar main-bg)" \
-                "$(fragment_rasi_value "$bundle/rofi.rasi" moonarch-surface)"
-            assert_mapping "$id Rofi accent" \
-                "$(source_value "$source_file" Rofi select-bg)" \
-                "$(fragment_rasi_value "$bundle/rofi.rasi" moonarch-accent)"
-
         for index in {0..15}; do
             assert_mapping "$id Ghostty palette $index" \
                 "$(source_value "$source_file" 'Kitty Terminal' "color$index")" \
@@ -585,26 +465,6 @@ verify_bundle_contract() {
         "${#source_dirs[@]}"
 }
 
-verify_shared_waybar() {
-    if grep -Eq '#[[:xdigit:]]{3,8}([[:space:];,)]|$)|rgba[[:space:]]*\(' "$style_file"; then
-        fail 'shared Waybar stylesheet contains a fixed color literal'
-    fi
-    assert_rule_uses '.modules-left' '@accent_blue'
-    assert_rule_uses '#workspaces button' '@text_main'
-    assert_rule_uses '#workspaces button.active' '@accent_blue'
-    assert_rule_uses '#workspaces button:hover' '@accent_blue'
-    assert_rule_uses '#groups-hardware' '@bg_dark'
-    assert_rule_uses '#taskbar button:hover' '@bg_dark'
-    assert_rule_uses '#tray:hover' '@accent_blue'
-    assert_rule_uses '#custom-launcher:hover' '@accent_blue'
-    assert_rule_uses '#battery.warning' '@urgent_red'
-    assert_rule_uses '#battery.charging' '@accent_blue'
-    assert_rule_uses '#battery,' '@text_main'
-    assert_rule_uses '#clock:hover' '@bg_dark'
-    assert_rule_uses '#custom-pacman:hover' '@accent_blue'
-    printf 'PASS: shared Waybar rules use theme aliases\n'
-}
 
 verify_bundle_contract
-verify_shared_waybar
 assert_ghostty_clean_config

@@ -1,0 +1,4 @@
+# This change drops an installable entry; it modifies no spec.
+# Verified: no file under openspec/specs/ mentions dunst.
+schema: spec-driven
+skip_specs: true

@@ -2,20 +2,20 @@
 
 ## Purpose
 
-Provide safe runtime selection of one coherent MoonArch theme for Hyprland, Waybar, Wofi, and Ghostty.
+Provide safe runtime selection of one coherent MoonArch theme for Hyprland, Waybar, and Ghostty.
 
 ## Requirements
 
 ### Requirement: Tokyo Night Is the Initial Valid Theme
 
-The system MUST provide a versioned `tokyo-night` bundle under the MoonArch themes root. A fresh installation SHALL provide `themes/current` as a valid relative link to that bundle. A bundle MUST contain a valid identity/manifest and required fragments for all four supported consumers.
+The system MUST provide a versioned `tokyo-night` bundle under the MoonArch themes root. A fresh installation SHALL provide `themes/current` as a valid relative link to that bundle. A bundle MUST contain a valid identity/manifest and required fragments for all three supported consumers.
 
 #### Scenario: Fresh installation selects Tokyo Night
 
 - GIVEN MoonArch is installed into a previously unconfigured home
 - WHEN installation completes successfully
 - THEN `themes/current` SHALL resolve to the `tokyo-night` bundle
-- AND all four consumer fragments SHALL be available
+- AND all three consumer fragments SHALL be available
 
 #### Scenario: Incomplete bundle is not valid
 
@@ -25,14 +25,14 @@ The system MUST provide a versioned `tokyo-night` bundle under the MoonArch them
 
 ### Requirement: Name-Only Validated Atomic Switching
 
-The Wofi selector MUST accept only a bundle name, reject invalid identities and resolved paths outside the themes root, and MUST NOT mutate bundle contents. It SHALL atomically replace only `current` after validation, reload supported running consumers, and restore the prior link if a reload fails.
+The selector MUST accept only a bundle name, reject invalid identities and resolved paths outside the themes root, and MUST NOT mutate bundle contents. It SHALL atomically replace only `current` after validation, reload supported running consumers, and restore the prior link if a reload fails. The interactive picker SHALL be provided by Selene: the `Super+Shift+T` binding invokes `qs -c selene ipc call selene openThemes`, and the picker SHALL offer candidates through `theme-selector --list` and apply the chosen identity through `theme-selector --apply`. The `--list`, `--apply`, and name-only invocations MUST NOT require Selene to be running.
 
 #### Scenario: Valid selection switches all consumers
 
 - GIVEN a valid named bundle and an existing active theme
-- WHEN the user selects that name in Wofi
+- WHEN the user selects that name through the Selene picker or applies it by name
 - THEN `current` SHALL atomically point to the selected bundle
-- AND Hyprland, Waybar, and Wofi SHALL reload; Ghostty SHALL apply on new terminals
+- AND Hyprland, Waybar, and Selene SHALL reload when running; Ghostty SHALL apply on new terminals
 
 #### Scenario: Unsafe or failed selection preserves active theme
 
@@ -43,7 +43,7 @@ The Wofi selector MUST accept only a bundle name, reject invalid identities and 
 
 ### Requirement: Bounded Runtime Scope
 
-The system SHALL support only Hyprland, Waybar, Wofi, and Ghostty fragments in this slice. It MUST NOT provide wallpaper, Wofi previews, GTK, Qt, Yazi, multi-theme bundles, a general theme engine, extensions to `dots theme`, or runtime selection in installer UI.
+The system SHALL support only Hyprland, Waybar, and Ghostty fragments in this slice. The Waybar fragment SHALL additionally serve Selene, which derives its tokens from `waybar.css` and `ghostty.conf` and MUST NOT require a fragment of its own. It MUST NOT provide wallpaper, theme previews, GTK, Qt, Yazi, multi-theme bundles, a general theme engine, extensions to `dots theme`, or runtime selection in installer UI.
 
 #### Scenario: Unsupported request is excluded
 

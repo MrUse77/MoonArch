@@ -8,7 +8,7 @@ themes_real="$(realpath -e -- "$themes")" || {
 }
 current="$themes_real/current"
 id_pattern='^[a-z0-9][a-z0-9-]*$'
-required_files=(hyprland.conf hyprland.lua waybar.css rofi.rasi ghostty.conf)
+required_files=(hyprland.conf hyprland.lua waybar.css ghostty.conf)
 
 is_valid_id() {
     [[ "$1" =~ $id_pattern ]]
@@ -61,17 +61,21 @@ restore_current() {
     fi
 }
 
+refresh_selene_best_effort() {
+    qs -c selene ipc call selene themeReload >/dev/null 2>&1 || true
+}
+
 reload_consumers() {
     local pgrep_status
 
     hyprctl reload || return 1
     if pgrep -x waybar; then
         pkill -SIGUSR2 waybar || return 1
-        return
     else
         pgrep_status=$?
+        [[ "$pgrep_status" -eq 1 ]] || return 1
     fi
-    [[ "$pgrep_status" -eq 1 ]]
+    refresh_selene_best_effort
 }
 
 refresh_best_effort() {
@@ -79,6 +83,7 @@ refresh_best_effort() {
     if pgrep -x waybar; then
         pkill -SIGUSR2 waybar || true
     fi
+    refresh_selene_best_effort
 }
 
 valid_ids() {
@@ -87,13 +92,25 @@ valid_ids() {
     for candidate in "$themes_real"/*; do
         [[ -d "$candidate" ]] || continue
         id="${candidate##*/}"
-        validate_bundle "$id" && printf '%s\n' "$id"
+        if validate_bundle "$id"; then
+            printf '%s\n' "$id"
+        fi
     done | sort
 }
 
-if (( $# > 1 )); then
-    printf 'usage: %s [theme-id]\n' "${0##*/}" >&2
+usage() {
+    printf 'usage: %s [--list | --apply theme-id | theme-id]\n' "${0##*/}" >&2
+}
+
+if (( $# > 2 )); then
+    usage
     exit 2
+fi
+
+if [[ "${1:-}" == "--list" ]]; then
+    (( $# == 1 )) || { usage; exit 2; }
+    valid_ids
+    exit 0
 fi
 
 validate_current || {
@@ -101,14 +118,20 @@ validate_current || {
     exit 1
 }
 
-if (( $# == 1 )); then
+if [[ "${1:-}" == "--apply" ]]; then
+    (( $# == 2 )) && [[ "$2" != -* ]] || { usage; exit 2; }
+    selected="$2"
+elif (( $# == 1 )) && [[ "$1" != -* ]]; then
     selected="$1"
-else
-    if ! selected="$(valid_ids | "$HOME/.config/rofi/scripts/launch" -dmenu -p "Theme" -no-custom \
-        -theme-str 'window { width: 95%; border-radius: 16px; } mainbox { children: [listview, message]; } listview { columns: 6; lines: 2; spacing: 16px; } element { orientation: vertical; children: [element-text]; padding: 20px 24px; } element-text { expand: true; horizontal-align: 0.5; vertical-align: 0.5; text-align: center; ellipsize: none; }')"; then
-        exit 0
+elif (( $# == 0 )); then
+    if ! qs -c selene ipc call selene openThemes; then
+        printf 'Selene theme picker is unavailable; use --list and --apply <theme-id> to change the theme\n' >&2
+        exit 1
     fi
-    [[ -n "$selected" ]] || exit 0
+    exit 0
+else
+    usage
+    exit 2
 fi
 
 validate_bundle "$selected" || {
