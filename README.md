@@ -26,7 +26,8 @@ Configuración personal para Arch Linux con Hyprland.
 | Cursor | volantes_cursors |
 
 > Selene cubre barra, lanzador, notificaciones, OSD, menú de sesión y dashboard.
-> Eww, Dunst, Waybar y Rofi fueron retirados del repo. Los fragmentos
+> Eww, Dunst, Waybar y Rofi fueron retirados del repo, y sus paquetes ya no se
+> ofrecen en el instalador. Los fragmentos
 > `waybar.css` de los bundles **se mantienen**: Selene deriva sus tokens de ahí.
 
 ---
@@ -279,7 +280,8 @@ dotfiles/
 ```
 
 > Las configuraciones de `wofi`, `nwg-drawer`, `nwg-dock-hyprland`, `eww`,
-> `dunst`, `waybar` y `rofi` fueron eliminadas del repo. El shell de escritorio
+> `dunst`, `waybar` y `rofi` fueron eliminadas del repo, y ninguno de esos
+> paquetes se instala ya. El shell de escritorio
 > vive ahora en `home/.config/quickshell/selene/`.
 
 ---

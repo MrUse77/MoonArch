@@ -27,13 +27,18 @@ func TestDefaultCategories_PackageNamesMatchCatalogGroups(t *testing.T) {
 	}
 }
 
-// Selene owns the freedesktop notifications bus at runtime, so the legacy
-// notification daemon stays installed-but-dormant instead of absent: the
-// documented rollback turns dunst back on without a package install. Waybar and
-// Rofi are fully retired with Selene and are no longer fallbacks. The Quickshell
-// shell leads the category it now defaults to.
-func TestDefaultCategories_QuickshellLeadsDormantFallbacks(t *testing.T) {
+// Selene covers the bar, launcher, notification daemon, widget host and session
+// menu that the desktop used to compose from four separate tools. Every one of
+// them has had its configuration removed, so none may be offered again.
+func TestDefaultCategories_QuickshellReplacesRetiredTools(t *testing.T) {
 	categories := menu.DefaultCategories()
+
+	offered := make(map[string]bool)
+	for _, category := range categories {
+		for _, pkg := range category.Packages {
+			offered[pkg.Name] = true
+		}
+	}
 
 	hyprland := -1
 	for i := range categories {
@@ -46,31 +51,18 @@ func TestDefaultCategories_QuickshellLeadsDormantFallbacks(t *testing.T) {
 		t.Fatalf("no %q category in the default categories", plan.GroupHyprland)
 	}
 
-	packages := categories[hyprland].Packages
-	index := make(map[string]int, len(packages))
-	for i, pkg := range packages {
-		index[pkg.Name] = i
+	if !offered["aur/quickshell-git"] {
+		t.Fatal("aur/quickshell-git is missing from the default categories")
+	}
+	for _, pkg := range categories[hyprland].Packages {
+		if pkg.Name == "aur/quickshell-git" && !pkg.Selected {
+			t.Error("aur/quickshell-git must be selected by default")
+		}
 	}
 
-	shell, ok := index["aur/quickshell-git"]
-	if !ok {
-		t.Fatal("aur/quickshell-git is missing from the Hyprland category")
-	}
-	if !packages[shell].Selected {
-		t.Error("aur/quickshell-git must be selected by default")
-	}
-
-	for _, fallback := range []string{"dunst"} {
-		i, ok := index[fallback]
-		if !ok {
-			t.Errorf("%s is missing from the Hyprland category", fallback)
-			continue
-		}
-		if shell > i {
-			t.Errorf("aur/quickshell-git must be listed before %s, got indexes %d and %d", fallback, shell, i)
-		}
-		if !packages[i].Selected {
-			t.Errorf("%s must stay pre-selected as a dormant fallback; the documented rollback expects it installed", fallback)
+	for _, retired := range []string{"aur/waybar-git", "rofi", "dunst", "aur/eww", "aur/wlogout"} {
+		if offered[retired] {
+			t.Errorf("%s must not be offered: Selene replaces it and its configuration was removed", retired)
 		}
 	}
 }

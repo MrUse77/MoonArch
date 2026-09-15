@@ -183,7 +183,7 @@ func collectPackages(opts plan.Options) []string {
 	groups := map[string][]string{
 		plan.GroupHyprland: {
 			"hyprland", "hyprlock", "hyprpaper", "hypridle", "hyprsunset",
-			"hyprpolkitagent", "aur/quickshell-git", "dunst",
+			"hyprpolkitagent", "aur/quickshell-git",
 			"xdg-desktop-portal-hyprland", "xdg-desktop-portal-gtk",
 			"nwg-look",
 		},
