@@ -30,19 +30,10 @@ new_case() {
     themes="$case_dir/themes"
     fake_bin="$case_dir/bin"
     command_log="$case_dir/commands.log"
-    rofi_input="$case_dir/rofi-input"
     test_home="$case_dir/home"
-    mkdir -p "$themes" "$fake_bin" "$test_home/.config/rofi/scripts"
+    mkdir -p "$themes" "$fake_bin" "$test_home"
     : > "$command_log"
 
-    cat > "$test_home/.config/rofi/scripts/launch" <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-printf 'rofi %s\n' "$*" >> "$COMMAND_LOG"
-cat > "$ROFI_INPUT"
-[[ "${ROFI_CANCEL:-0}" == 1 ]] && exit 1
-printf '%s\n' "${ROFI_OUTPUT:-}"
-EOF
     cat > "$fake_bin/hyprctl" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -67,7 +58,7 @@ set -euo pipefail
 printf 'qs %s\n' "$*" >> "$COMMAND_LOG"
 [[ "${QS_FAIL:-0}" != 1 ]]
 EOF
-    chmod +x "$fake_bin"/* "$test_home/.config/rofi/scripts/launch"
+    chmod +x "$fake_bin"/*
 }
 
 make_bundle() {
@@ -88,7 +79,6 @@ run_selector() {
         HOME="$test_home" \
         PATH="$fake_bin:$PATH" \
         COMMAND_LOG="$command_log" \
-        ROFI_INPUT="$rofi_input" \
         "$selector" "$@"
 }
 
@@ -108,6 +98,18 @@ preserves_current_on_failure() {
     pass_count=$((pass_count + 1))
 }
 
+new_case
+make_bundle tokyo-night
+make_bundle alpha
+mkdir -p "$themes/Bad"
+ln -s tokyo-night "$themes/current"
+list_output="$(run_selector --list)" || fail '--list failed'
+assert_eq "$list_output" $'alpha\ntokyo-night'
+assert_current tokyo-night
+[[ ! -s "$command_log" ]] || fail '--list invoked a consumer command'
+printf 'PASS: --list prints sorted valid IDs without side effects\n'
+pass_count=$((pass_count + 1))
+
 # A themes root whose last entry is not a valid bundle must not fail the listing
 # itself. current is always an invalid identity, and it sorts last whenever every
 # bundled theme sorts before it.
@@ -122,24 +124,9 @@ pass_count=$((pass_count + 1))
 new_case
 make_bundle tokyo-night
 make_bundle alpha
-mkdir -p "$themes/Bad"
-ln -s tokyo-night "$themes/current"
-list_output="$(run_selector --list)" || fail '--list failed'
-assert_eq "$list_output" $'alpha\ntokyo-night'
-assert_current tokyo-night
-[[ ! -s "$command_log" ]] || fail '--list invoked a consumer command'
-printf 'PASS: --list prints sorted valid IDs without side effects\n'
-pass_count=$((pass_count + 1))
-
-new_case
-make_bundle tokyo-night
-make_bundle alpha
 ln -s tokyo-night "$themes/current"
 assert_success run_selector --apply alpha
 assert_current alpha
-if grep -q '^rofi ' "$command_log"; then
-    fail '--apply invoked Rofi'
-fi
 grep -qx 'qs -c selene ipc call selene themeReload' "$command_log" || fail 'Selene reload argv differs'
 printf 'PASS: --apply switches directly and refreshes Selene\n'
 pass_count=$((pass_count + 1))
@@ -148,11 +135,8 @@ new_case
 make_bundle tokyo-night
 make_bundle alpha
 ln -s tokyo-night "$themes/current"
-assert_success env QS_FAIL=1 MOONARCH_THEMES_ROOT="$themes" HOME="$test_home" PATH="$fake_bin:$PATH" COMMAND_LOG="$command_log" ROFI_INPUT="$rofi_input" "$selector" alpha
+assert_success env QS_FAIL=1 MOONARCH_THEMES_ROOT="$themes" HOME="$test_home" PATH="$fake_bin:$PATH" COMMAND_LOG="$command_log" "$selector" alpha
 assert_current alpha
-if grep -q '^rofi ' "$command_log"; then
-    fail 'legacy positional apply invoked Rofi'
-fi
 grep -qx 'qs -c selene ipc call selene themeReload' "$command_log" || fail 'legacy positional apply skipped Selene refresh'
 printf 'PASS: positional apply survives Selene refresh failure\n'
 pass_count=$((pass_count + 1))
@@ -206,10 +190,10 @@ pass_count=$((pass_count + 1))
 new_case
 make_bundle tokyo-night
 ln -s tokyo-night "$themes/current"
-rm "$themes/tokyo-night/rofi.rasi"
+rm "$themes/tokyo-night/ghostty.conf"
 assert_failure run_selector tokyo-night
 assert_current tokyo-night
-printf 'PASS: missing fragment is rejected\n'
+printf 'PASS: missing Ghostty fragment is rejected\n'
 pass_count=$((pass_count + 1))
 
 new_case
@@ -264,12 +248,29 @@ pass_count=$((pass_count + 1))
 new_case
 make_bundle tokyo-night
 ln -s tokyo-night "$themes/current"
-assert_success env ROFI_CANCEL=1 MOONARCH_THEMES_ROOT="$themes" HOME="$test_home" PATH="$fake_bin:$PATH" COMMAND_LOG="$command_log" ROFI_INPUT="$rofi_input" "$selector"
+assert_success run_selector
 assert_current tokyo-night
+grep -Fxq 'qs -c selene ipc call selene openThemes' "$command_log" || fail 'no-argument path did not open the Selene theme picker'
 if grep -Eq '^(hyprctl|pgrep|pkill) ' "$command_log"; then
-    fail 'cancellation ran a reload command'
+    fail 'opening the Selene theme picker ran a reload command'
 fi
-printf 'PASS: Rofi cancellation is a no-op\n'
+printf 'PASS: no-argument path delegates to the Selene theme picker\n'
+pass_count=$((pass_count + 1))
+
+new_case
+make_bundle tokyo-night
+ln -s tokyo-night "$themes/current"
+error_output="$case_dir/error"
+if env QS_FAIL=1 MOONARCH_THEMES_ROOT="$themes" HOME="$test_home" PATH="$fake_bin:$PATH" COMMAND_LOG="$command_log" "$selector" 2>"$error_output"; then
+    fail 'no-argument path succeeded while Quickshell failed'
+fi
+assert_current tokyo-night
+grep -Fq -- '--list' "$error_output" || fail 'Quickshell failure message does not name --list'
+grep -Fq -- '--apply' "$error_output" || fail 'Quickshell failure message does not name --apply'
+if grep -Eq '^(hyprctl|pgrep|pkill) ' "$command_log"; then
+    fail 'failed picker delegation ran a reload command'
+fi
+printf 'PASS: no-argument path fails when Quickshell is unavailable\n'
 pass_count=$((pass_count + 1))
 
 new_case
@@ -277,29 +278,27 @@ make_bundle tokyo-night
 make_bundle alpha
 ln -s tokyo-night "$themes/current"
 bundle_digest_before="$(sha256sum "$themes"/tokyo-night/* "$themes"/alpha/*)"
-assert_success env ROFI_OUTPUT=alpha MOONARCH_THEMES_ROOT="$themes" HOME="$test_home" PATH="$fake_bin:$PATH" COMMAND_LOG="$command_log" ROFI_INPUT="$rofi_input" WAYBAR_RUNNING=0 "$selector"
+assert_success env WAYBAR_RUNNING=0 MOONARCH_THEMES_ROOT="$themes" HOME="$test_home" PATH="$fake_bin:$PATH" COMMAND_LOG="$command_log" "$selector" alpha
 assert_current alpha
-assert_eq "$(cat "$rofi_input")" $'alpha\ntokyo-night'
 bundle_digest_after="$(sha256sum "$themes"/tokyo-night/* "$themes"/alpha/*)"
 assert_eq "$bundle_digest_after" "$bundle_digest_before"
 grep -qx 'hyprctl reload' "$command_log" || fail 'Hyprland reload argv differs'
 grep -qx 'pgrep -x waybar' "$command_log" || fail 'Waybar process check argv differs'
-grep -q '^rofi -dmenu -p Theme -no-custom ' "$command_log" || fail 'Rofi argv differs'
-grep -qx 'qs -c selene ipc call selene themeReload' "$command_log" || fail 'successful selection skipped Selene refresh'
-if grep -Eq 'ghostty|rofi.*reload' "$command_log"; then
-    fail 'selector invoked an unsupported Rofi or Ghostty reload'
+grep -qx 'qs -c selene ipc call selene themeReload' "$command_log" || fail 'successful apply skipped Selene refresh'
+if grep -q 'ghostty' "$command_log"; then
+    fail 'selector invoked an unsupported Ghostty reload'
 fi
 if compgen -G "${themes}/.current*" >/dev/null; then
     fail 'atomic switch left a temporary link'
 fi
-printf 'PASS: sorted selection atomically switches with fixed commands\n'
+printf 'PASS: direct apply atomically switches with fixed commands\n'
 pass_count=$((pass_count + 1))
 
 new_case
 make_bundle tokyo-night
 make_bundle alpha
 ln -s tokyo-night "$themes/current"
-assert_failure env HYPRCTL_FAIL=1 ROFI_OUTPUT=alpha MOONARCH_THEMES_ROOT="$themes" HOME="$test_home" PATH="$fake_bin:$PATH" COMMAND_LOG="$command_log" ROFI_INPUT="$rofi_input" WAYBAR_RUNNING=0 "$selector"
+assert_failure env HYPRCTL_FAIL=1 MOONARCH_THEMES_ROOT="$themes" HOME="$test_home" PATH="$fake_bin:$PATH" COMMAND_LOG="$command_log" "$selector" alpha
 assert_current tokyo-night
 grep -c '^hyprctl reload$' "$command_log" | grep -qx '2' || fail 'rollback did not retry Hyprland reload'
 grep -c '^qs -c selene ipc call selene themeReload$' "$command_log" | grep -qx '1' || fail 'rollback refresh skipped Selene reload'
@@ -310,7 +309,7 @@ new_case
 make_bundle tokyo-night
 make_bundle alpha
 ln -s tokyo-night "$themes/current"
-assert_failure env PKILL_FAIL=1 ROFI_OUTPUT=alpha MOONARCH_THEMES_ROOT="$themes" HOME="$test_home" PATH="$fake_bin:$PATH" COMMAND_LOG="$command_log" ROFI_INPUT="$rofi_input" WAYBAR_RUNNING=1 "$selector"
+assert_failure env PKILL_FAIL=1 MOONARCH_THEMES_ROOT="$themes" HOME="$test_home" PATH="$fake_bin:$PATH" COMMAND_LOG="$command_log" WAYBAR_RUNNING=1 "$selector" alpha
 assert_current tokyo-night
 grep -c '^pkill -SIGUSR2 waybar$' "$command_log" | grep -qx '2' || fail 'rollback did not retry Waybar reload'
 grep -c '^qs -c selene ipc call selene themeReload$' "$command_log" | grep -qx '1' || fail 'Waybar rollback refresh skipped Selene reload'
@@ -329,12 +328,13 @@ fi
 if grep -rIiq --exclude-dir=selene -e eww -e dunst "$repo_root/home"; then
     fail 'A tracked configuration still references a retired widget host or notification daemon'
 fi
+if grep -rIiqw --exclude-dir=selene rofi "$repo_root/home"; then
+    fail 'A tracked configuration still references the retired Rofi launcher'
+fi
 grep -Fqx 'config-file = "~/.local/share/moonarch/themes/current/ghostty.conf"' "$repo_root/home/.config/ghostty/config" || fail 'Ghostty does not import the current theme'
 if grep -Eq '^[[:space:]]*config-file[[:space:]]*=' "$repo_root/home/.config/ghostty/config-clean"; then
     fail 'Ghostty clean profile must inherit the default theme without overriding config-file'
 fi
-grep -Fqx 'fragment="${HOME}/.local/share/moonarch/themes/current/rofi.rasi"' "$repo_root/home/.config/rofi/scripts/launch" || fail 'Rofi launcher does not select the current theme fragment'
-grep -Fq "printf '@import \"%s\"\\n' \"\$fragment_abs\"" "$repo_root/home/.config/rofi/scripts/launch" || fail 'Rofi launcher does not compose the current theme fragment'
 printf 'PASS: repository consumers bind to the current theme\n'
 
 printf 'PASS: %d MoonArch selector scenarios\n' "$pass_count"
