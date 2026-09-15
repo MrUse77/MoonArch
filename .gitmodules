@@ -16,3 +16,6 @@
 [submodule ".config/hypr/plugins/split-monitor-workspaces"]
 	path = home/.config/hypr/plugins/split-monitor-workspaces
 	url = https://github.com/zjeffer/split-monitor-workspaces
+[submodule "home/.config/quickshell/selene"]
+	path = home/.config/quickshell/selene
+	url = https://github.com/MrUse77/Selene-Shell.git
