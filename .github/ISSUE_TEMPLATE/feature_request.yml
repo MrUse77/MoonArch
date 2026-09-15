@@ -26,9 +26,8 @@ body:
         - waybar
         - ghostty
         - zellij
-        - dunst
-        - eww
-        - wofi
+        - rofi
+        - selene (Quickshell)
         - yazi
         - nvim
         - gtk
