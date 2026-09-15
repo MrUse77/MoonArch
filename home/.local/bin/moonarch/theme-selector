@@ -92,7 +92,9 @@ valid_ids() {
     for candidate in "$themes_real"/*; do
         [[ -d "$candidate" ]] || continue
         id="${candidate##*/}"
-        validate_bundle "$id" && printf '%s\n' "$id"
+        if validate_bundle "$id"; then
+            printf '%s\n' "$id"
+        fi
     done | sort
 }
 

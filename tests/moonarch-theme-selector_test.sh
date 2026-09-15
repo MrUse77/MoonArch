@@ -108,6 +108,17 @@ preserves_current_on_failure() {
     pass_count=$((pass_count + 1))
 }
 
+# A themes root whose last entry is not a valid bundle must not fail the listing
+# itself. current is always an invalid identity, and it sorts last whenever every
+# bundled theme sorts before it.
+new_case
+make_bundle alpha
+ln -s alpha "$themes/current"
+list_output="$(run_selector --list)" || fail '--list failed when a trailing themes-root entry is not a valid bundle'
+assert_eq "$list_output" 'alpha'
+printf 'PASS: --list succeeds when a trailing entry is not a valid bundle\n'
+pass_count=$((pass_count + 1))
+
 new_case
 make_bundle tokyo-night
 make_bundle alpha
