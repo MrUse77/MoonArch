@@ -1,0 +1,5 @@
+# This change retires configuration and an installable entry; it modifies no spec.
+# The spec's Waybar references stay true: the 13 waybar.css bundle fragments remain and
+# theme-selector keeps reloading Waybar when it is running.
+schema: spec-driven
+skip_specs: true
