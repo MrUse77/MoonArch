@@ -309,7 +309,15 @@ pass_count=$((pass_count + 1))
 grep -Fqx 'local theme_path = os.getenv("HOME") .. "/.local/share/moonarch/themes/current/hyprland.lua"' "$repo_root/home/.config/hypr/hyprland.lua" || fail 'Hyprland Lua does not select the current theme fragment'
 grep -Fq 'pcall(dofile, theme_path)' "$repo_root/home/.config/hypr/hyprland.lua" || fail 'Hyprland Lua does not load the selected theme fragment'
 grep -Fq 'hl.config(theme_config)' "$repo_root/home/.config/hypr/hyprland.lua" || fail 'Hyprland Lua does not apply the selected theme fragment'
-grep -Fq 'theme-selector' "$repo_root/home/.config/hypr/hyprland.lua" || fail 'Hyprland Lua selector binding is missing'
+grep -Fq 'hl.bind(mainMod .. " + SHIFT + T", hl.dsp.exec_cmd(seleneIpc .. "openThemes"))' "$repo_root/home/.config/hypr/hyprland.lua" || fail 'Hyprland Lua selector binding is missing'
+grep -Fq 'qs -c selene' "$repo_root/home/.config/hypr/hyprland.lua" || fail 'Hyprland autostart does not launch Selene'
+autostart_block="$(sed -n '/hl.on("hyprland.start"/,/^end)/p' "$repo_root/home/.config/hypr/hyprland.lua")"
+if grep -Eqw '(waybar|dunst|eww)' <<<"$autostart_block"; then
+    fail 'Hyprland autostart starts a replaced bar, notification daemon, or widget host next to Selene'
+fi
+if grep -rIiq --exclude-dir=selene -e eww -e dunst "$repo_root/home"; then
+    fail 'A tracked configuration still references a retired widget host or notification daemon'
+fi
 grep -Fqx '@import url("../../.local/share/moonarch/themes/current/waybar.css");' "$repo_root/home/.config/waybar/style.css" || fail 'Waybar does not import the current theme'
 grep -Fqx 'config-file = "~/.local/share/moonarch/themes/current/ghostty.conf"' "$repo_root/home/.config/ghostty/config" || fail 'Ghostty does not import the current theme'
 if grep -Eq '^[[:space:]]*config-file[[:space:]]*=' "$repo_root/home/.config/ghostty/config-clean"; then
