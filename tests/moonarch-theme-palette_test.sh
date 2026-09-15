@@ -3,7 +3,6 @@ set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 themes_root="$repo_root/home/.local/share/moonarch/themes"
-style_file="$repo_root/home/.config/waybar/style.css"
 clean_ghostty="$repo_root/home/.config/ghostty/config-clean"
 
 protected_paths=(
@@ -333,73 +332,6 @@ assert_mapping() {
         ' "$fragment"
     }
 
-assert_rule_uses() {
-    local selector="$1"
-    local alias="$2"
-
-    awk -v wanted_selector="$selector" -v wanted_alias="$alias" '
-        function strip_comments(line, start, end, prefix, rest) {
-            while (1) {
-                if (in_comment) {
-                    end = index(line, "*/")
-                    if (!end) {
-                        return ""
-                    }
-                    line = substr(line, end + 2)
-                    in_comment = 0
-                }
-                start = index(line, "/*")
-                if (!start) {
-                    return line
-                }
-                prefix = substr(line, 1, start - 1)
-                rest = substr(line, start + 2)
-                end = index(rest, "*/")
-                if (!end) {
-                    in_comment = 1
-                    return prefix
-                }
-                line = prefix substr(rest, end + 2)
-            }
-        }
-        function contains_token(line, token, position, before, after, remainder) {
-            remainder = line
-            while ((position = index(remainder, token)) != 0) {
-                before = ""
-                if (position > 1) {
-                    before = substr(remainder, position - 1, 1)
-                }
-                after = substr(remainder, position + length(token), 1)
-                if ((before == "" || before !~ /[[:alnum:]_-]/) &&
-                    (after == "" || after !~ /[[:alnum:]_-]/)) {
-                    return 1
-                }
-                remainder = substr(remainder, position + length(token))
-            }
-            return 0
-        }
-        BEGIN { result = 1 }
-        {
-            line = strip_comments($0)
-        }
-        !in_rule && contains_token(line, wanted_selector) {
-            in_rule = 1
-            found_alias = 0
-        }
-        in_rule && contains_token(line, wanted_alias) {
-            found_alias = 1
-        }
-        in_rule && line ~ /^[[:space:]]*}/ {
-            if (found_alias) {
-                result = 0
-                exit
-            }
-            in_rule = 0
-        }
-        END { exit result }
-    ' "$style_file" || fail "rule '$selector' does not use $alias"
-}
-
 assert_ghostty_clean_config() {
     local config_file_count=0
     local value key override_count override_values
@@ -585,26 +517,6 @@ verify_bundle_contract() {
         "${#source_dirs[@]}"
 }
 
-verify_shared_waybar() {
-    if grep -Eq '#[[:xdigit:]]{3,8}([[:space:];,)]|$)|rgba[[:space:]]*\(' "$style_file"; then
-        fail 'shared Waybar stylesheet contains a fixed color literal'
-    fi
-    assert_rule_uses '.modules-left' '@accent_blue'
-    assert_rule_uses '#workspaces button' '@text_main'
-    assert_rule_uses '#workspaces button.active' '@accent_blue'
-    assert_rule_uses '#workspaces button:hover' '@accent_blue'
-    assert_rule_uses '#groups-hardware' '@bg_dark'
-    assert_rule_uses '#taskbar button:hover' '@bg_dark'
-    assert_rule_uses '#tray:hover' '@accent_blue'
-    assert_rule_uses '#custom-launcher:hover' '@accent_blue'
-    assert_rule_uses '#battery.warning' '@urgent_red'
-    assert_rule_uses '#battery.charging' '@accent_blue'
-    assert_rule_uses '#battery,' '@text_main'
-    assert_rule_uses '#clock:hover' '@bg_dark'
-    assert_rule_uses '#custom-pacman:hover' '@accent_blue'
-    printf 'PASS: shared Waybar rules use theme aliases\n'
-}
 
 verify_bundle_contract
-verify_shared_waybar
 assert_ghostty_clean_config

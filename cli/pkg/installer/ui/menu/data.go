@@ -33,7 +33,6 @@ func DefaultCategories() []Category {
 				{Name: "hyprsunset", Description: "Blue light filter", Selected: true},
 				{Name: "hyprpolkitagent", Description: "Polkit authentication agent", Selected: true},
 				{Name: "aur/quickshell-git", Description: "Desktop shell: bar, launcher, notifications (Selene)", Selected: true},
-				{Name: "aur/waybar-git", Description: "Status bar (Selene fallback)", Selected: true},
 				{Name: "rofi", Description: "Application launcher & dmenu replacement", Selected: true},
 				{Name: "dunst", Description: "Notification daemon (dormant: Selene owns the notifications bus)", Selected: true},
 				{Name: "xdg-desktop-portal-hyprland", Description: "Screencast & screen sharing", Selected: true},

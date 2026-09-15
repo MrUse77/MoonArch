@@ -26,8 +26,9 @@ Configuración personal para Arch Linux con Hyprland.
 | Cursor | volantes_cursors |
 
 > Selene cubre barra, lanzador, notificaciones, OSD, menú de sesión y dashboard.
-> Waybar y Rofi siguen instalados y configurados pero dormidos: nada los arranca
-> y existen como vía de rollback. Eww y Dunst fueron retirados del repo.
+> Rofi sigue instalado y configurado pero dormido: nada lo arranca y existe como
+> vía de rollback. Eww, Dunst y Waybar fueron retirados del repo. Los fragmentos
+> `waybar.css` de los bundles **se mantienen**: Selene deriva sus tokens de ahí.
 
 ---
 
@@ -254,10 +255,6 @@ dotfiles/
 │   │   ├── nvim/           # Config de Neovim (submodule → MrUse77/Nvim-config)
 │   │   ├── quickshell/     # Shell de escritorio Selene (submodule → MrUse77/Selene-Shell)
 │   │   ├── rofi/           # Picker sin argumentos del selector de temas
-│   │   ├── waybar/         # Dormido: fallback de la barra
-│   │   │   ├── config.jsonc
-│   │   │   ├── style.css   # @import del fragmento waybar.css del tema activo
-│   │   │   └── colors.css  # Variables de color (temas dinámicos)
 │   │   ├── yazi/
 │   │   └── zellij/
 │   ├── .local/
@@ -284,10 +281,10 @@ dotfiles/
 └── hyde_theme_palettes.txt  # Paletas HyDE (referencia)
 ```
 
-> Las configuraciones de `wofi`, `nwg-drawer`, `nwg-dock-hyprland`, `eww` y
-> `dunst` fueron eliminadas del repo. El shell de escritorio vive ahora en
-> `home/.config/quickshell/selene/`; `waybar/` y `rofi/` quedan como fallback
-> dormido y como picker del selector de temas.
+> Las configuraciones de `wofi`, `nwg-drawer`, `nwg-dock-hyprland`, `eww`,
+> `dunst` y `waybar` fueron eliminadas del repo. El shell de escritorio vive
+> ahora en `home/.config/quickshell/selene/`; `rofi/` queda como picker del
+> selector de temas.
 
 ---
 

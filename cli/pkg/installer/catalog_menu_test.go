@@ -27,10 +27,11 @@ func TestDefaultCategories_PackageNamesMatchCatalogGroups(t *testing.T) {
 	}
 }
 
-// Selene owns the freedesktop notifications bus at runtime, so the legacy stack
-// stays installed-but-dormant instead of absent: the documented rollback turns
-// waybar and dunst back on without a package install. The Quickshell shell leads
-// the category it now defaults to.
+// Selene owns the freedesktop notifications bus at runtime, so the legacy
+// launcher and notification daemon stay installed-but-dormant instead of absent:
+// the documented rollback turns rofi and dunst back on without a package install.
+// Waybar is fully retired with Selene and is no longer a fallback. The Quickshell
+// shell leads the category it now defaults to.
 func TestDefaultCategories_QuickshellLeadsDormantFallbacks(t *testing.T) {
 	categories := menu.DefaultCategories()
 
@@ -59,7 +60,7 @@ func TestDefaultCategories_QuickshellLeadsDormantFallbacks(t *testing.T) {
 		t.Error("aur/quickshell-git must be selected by default")
 	}
 
-	for _, fallback := range []string{"aur/waybar-git", "rofi", "dunst"} {
+	for _, fallback := range []string{"rofi", "dunst"} {
 		i, ok := index[fallback]
 		if !ok {
 			t.Errorf("%s is missing from the Hyprland category", fallback)

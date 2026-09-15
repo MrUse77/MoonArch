@@ -127,7 +127,6 @@ Usamos [Conventional Commits](https://www.conventionalcommits.org/) en español 
 | Scope | Aplica a |
 |---|---|
 | `hypr` | `home/.config/hypr/` — Hyprland, hyprlock, hyprpaper, hypridle |
-| `waybar` | `home/.config/waybar/` (dormido) |
 | `rofi` | `home/.config/rofi/` |
 | `selene` | `home/.config/quickshell/selene/` (submodule) |
 | `ghostty` | `home/.config/ghostty/` |
