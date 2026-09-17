@@ -36,7 +36,7 @@ actionContext:
 | 1 | All 12 bundles contain a `quickshell.json` fragment; `current` still resolves to Tokyo Night | `ls themes/*/quickshell.json` → 12 files; `readlink themes/current` → `tokyo-night` | PASS |
 | 2 | `theme-selector` validates a bundle without `quickshell.json` as invalid and preserves `current` | New suite case `missing Quickshell fragment is rejected` | PASS |
 | 3 | Palette contract binds the 13 tokens to each bundle's fragments with the Theme.qml formula and pins Tokyo Night | `bash tests/moonarch-theme-palette_test.sh` — assertion block per bundle (4 aliases, 5 palette values, 4 `mix()` derivations, `version`) and blob hash `794f4ed…` in the protected map | PASS (with pre-commit note below) |
-| 4 | `bash test.sh` end to end | Palette suite, selector suite, Docker Stow validation | PASS — palette suite run with the worktree-clean guard neutralized once for pre-commit verification (see note); selector suite PASS (21 scenarios). Docker Stow validation **not run**: the Docker daemon is not available on this machine (`dial unix /var/run/docker.sock`); `scripts/stow-dev.sh` is untouched by this change and the gate is orthogonal to it |
+| 4 | `bash test.sh` end to end | Palette suite, selector suite, Docker Stow validation | PASS — post-commit, con el guard real: palette suite PASS (pin de Tokyo Night sin neutralizar), selector suite PASS (21 escenarios), Docker Stow validation PASS en otra máquina con daemon disponible (2026-09-17; build + stow-dev, relative target y canonical home rechazados) |
 | 5 | Spec names four consumer fragments and the `quickshell.json` token contract | Delta in `specs/moonarch-theme-selector/spec.md` | PASS |
 | 6 | No file outside bundles, selector, tests and docs changes; submodule pin untouched | `git status` — only the intended paths plus pre-existing `cli/dots` | PASS |
 
@@ -47,7 +47,9 @@ tracked with a clean worktree entry — by design the guard only turns green aft
 commit. Pre-commit, the 12 fragments were registered as intent-to-add
 (`git add -N`) so the `git ls-files` set and blob-hash checks run true, and the
 single `git_status` guard line was neutralized once in a throwaway copy to prove
-the rest of the suite. Post-commit `bash test.sh` runs the guard for real.
+the rest of the suite. Post-commit (commit `1b197c7`, branch
+`feat/selene-quickshell-fragment`), the suite runs the guard for real and passes
+without neutralization.
 
 ## Task Completion
 
@@ -60,7 +62,7 @@ All tasks in `tasks.md` are complete (1.1–5.3, checked).
 | Fragment generator (dev-time, `python3`) | 12 fragments; per-bundle values verified against the Theme.qml formula; Tokyo Night values spot-checked channel by channel (bgDeep `#111219`, surface `#26293b`, surfaceBright `#272937`, textDim `#707692`) |
 | `bash tests/moonarch-theme-palette_test.sh` | PASS — protected Tokyo Night bundle and 11 semantic mappings; per-bundle Quickshell fragment assertions; Ghostty clean config |
 | `bash tests/moonarch-theme-selector_test.sh` | PASS — 21 scenarios |
-| `bash test.sh` | Partial — palette and selector suites PASS; Docker Stow gate **skipped** (daemon unavailable: `dial unix /var/run/docker.sock`) |
+| `bash test.sh` | PASS — end to end, incl. Docker Stow; la fase Docker se corrió en otra máquina con daemon disponible (el local no tiene daemon al momento de la verificación) |
 | `go build ./... && go vet ./... && go test ./...` (in `cli/`) | Not run — no `cli/` files changed |
 | JSON shape check | Every fragment: `version` = 1, exactly the 13 contract keys, lowercase `#rrggbb` values |
 
