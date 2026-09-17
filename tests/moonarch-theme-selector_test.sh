@@ -71,6 +71,7 @@ make_bundle() {
     printf '/* waybar %s */\n' "$id" > "$bundle/waybar.css"
     printf '/* rofi %s */\n' "$id" > "$bundle/rofi.rasi"
     printf '# ghostty %s\n' "$id" > "$bundle/ghostty.conf"
+    printf '{\n  "version": 1\n}\n' > "$bundle/quickshell.json"
 }
 
 run_selector() {
@@ -208,6 +209,15 @@ pass_count=$((pass_count + 1))
 new_case
 make_bundle tokyo-night
 ln -s tokyo-night "$themes/current"
+rm "$themes/tokyo-night/quickshell.json"
+assert_failure run_selector tokyo-night
+assert_current tokyo-night
+printf 'PASS: missing Quickshell fragment is rejected\n'
+pass_count=$((pass_count + 1))
+
+new_case
+make_bundle tokyo-night
+ln -s tokyo-night "$themes/current"
 outside="$case_dir/outside.conf"
 printf 'outside\n' > "$outside"
 rm "$themes/tokyo-night/hyprland.conf"
@@ -325,10 +335,18 @@ autostart_block="$(sed -n '/hl.on("hyprland.start"/,/^end)/p' "$repo_root/home/.
 if grep -Eqw '(waybar|dunst|eww)' <<<"$autostart_block"; then
     fail 'Hyprland autostart starts a replaced bar, notification daemon, or widget host next to Selene'
 fi
-if grep -rIiq --exclude-dir=selene -e eww -e dunst "$repo_root/home"; then
+# Submodule worktrees under home/ are not tracked configuration; exclude them
+# from the retired-stack sweep (their nix lock hashes can contain the words
+# case-insensitively, e.g. "ewW" inside a flake.lock hash).
+submodule_excludes=()
+while IFS= read -r submodule_path; do
+    submodule_excludes+=(--exclude-dir="${submodule_path##*/}")
+done < <(git -C "$repo_root" config --file "$repo_root/.gitmodules" \
+    --get-regexp '^submodule\..*\.path$' | cut -d' ' -f2)
+if grep -rIiq "${submodule_excludes[@]}" -e eww -e dunst "$repo_root/home"; then
     fail 'A tracked configuration still references a retired widget host or notification daemon'
 fi
-if grep -rIiqw --exclude-dir=selene rofi "$repo_root/home"; then
+if grep -rIiqw "${submodule_excludes[@]}" rofi "$repo_root/home"; then
     fail 'A tracked configuration still references the retired Rofi launcher'
 fi
 grep -Fqx 'config-file = "~/.local/share/moonarch/themes/current/ghostty.conf"' "$repo_root/home/.config/ghostty/config" || fail 'Ghostty does not import the current theme'

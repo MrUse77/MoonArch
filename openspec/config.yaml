@@ -11,7 +11,8 @@ context: |
     - Editor: Neovim (submodule: MrUse77/Nvim-config)
     - Desktop shell: Selene (Quickshell, submodule: MrUse77/Selene-Shell) — bar, launcher, notifications, OSD, session menu, dashboard
       - Retired: Eww, Dunst, Waybar and Rofi configuration removed; Eww, Wlogout, Waybar, Rofi and Dunst packages dropped from the installer
-      - Kept: the 13 waybar.css bundle fragments (Selene derives its tokens from them) and the Waybar reload branch in theme-selector
+      - Kept: the 12 quickshell.json bundle fragments (Selene applies their tokens with priority over the waybar.css/ghostty.conf derivation) and the Waybar reload branch in theme-selector
+      - Pending: deprecating the waybar.css bundle fragments once the quickshell.json contract is established
     - File manager: Thunar + Yazi
     - Theme: TokyoNight
     - Installer CLI: Go 1.26.5, Cobra, Charmbracelet Huh/Bubbletea

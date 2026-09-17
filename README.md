@@ -27,8 +27,10 @@ Configuración personal para Arch Linux con Hyprland.
 
 > Selene cubre barra, lanzador, notificaciones, OSD, menú de sesión y dashboard.
 > Eww, Dunst, Waybar y Rofi fueron retirados del repo, y sus paquetes ya no se
-> ofrecen en el instalador. Los fragmentos
-> `waybar.css` de los bundles **se mantienen**: Selene deriva sus tokens de ahí.
+> ofrecen en el instalador. Selene deriva sus tokens del fragmento
+> `quickshell.json` de cada bundle, con prioridad sobre la derivación desde
+> `waybar.css` y `ghostty.conf`. Los fragmentos `waybar.css` de los bundles
+> **se mantienen** como respaldo, en camino a deprecarse.
 
 ---
 
@@ -125,7 +127,7 @@ La instalación normal despliega el selector MoonArch en `~/.local/bin/moonarch/
 ~/.local/share/moonarch/themes/current -> tokyo-night
 ```
 
-Las configuraciones consumidoras leen sus fragmentos a través de `current`; no reemplaces este link por una ruta absoluta ni edites el contenido de los bundles. Presioná `Super+Shift+T` para abrir el selector de temas de Selene y elegir un nombre válido, o ejecutá el selector directamente:
+Las configuraciones consumidoras leen sus fragmentos a través de `current`; no reemplaces este link por una ruta absoluta ni edites el contenido de los bundles. Cada bundle declara fragmentos para Hyprland, Waybar, Ghostty y Quickshell: Selene aplica los tokens de `quickshell.json` (los 13 colores `bg`, `bgDeep`, `surface`, `surfaceBright`, `text`, `textDim`, `accent`, `urgent`, `success`, `warning`, `purple`, `cyan`, `gray`, en `#rrggbb`) con prioridad total sobre la derivación desde `waybar.css` y `ghostty.conf`. Presioná `Super+Shift+T` para abrir el selector de temas de Selene y elegir un nombre válido, o ejecutá el selector directamente:
 
 ```bash
 ~/.local/bin/moonarch/theme-selector <theme-id>

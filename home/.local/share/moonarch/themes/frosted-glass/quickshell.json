@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "bg": "#7ed6ff",
+  "bgDeep": "#528ba6",
+  "surface": "#71adc8",
+  "surfaceBright": "#77c8ee",
+  "text": "#1e4c84",
+  "textDim": "#4c8ebf",
+  "accent": "#a44185",
+  "urgent": "#f72729",
+  "success": "#32895c",
+  "warning": "#f96f1c",
+  "purple": "#9f00bc",
+  "cyan": "#32c2c0",
+  "gray": "#545753"
+}
