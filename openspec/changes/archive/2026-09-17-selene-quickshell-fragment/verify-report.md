@@ -7,7 +7,7 @@
 - **artifacts:**
   - `openspec/changes/2026-09-17-selene-quickshell-fragment/verify-report.md`
   - Inputs read: `proposal.md`, `design.md`, `tasks.md`, `specs/moonarch-theme-selector/spec.md`, `openspec/specs/moonarch-theme-selector/spec.md`, `home/.local/bin/moonarch/theme-selector`, Selene `Services/Theme.qml` (submodule, read-only)
-- **next_recommended:** archive after merge
+- **next_recommended:** archive
 - **risks:** Non-Tokyo bundles change appearance on the next theme switch (their declared palette replaces the Tokyo fallback — the intended correction; see proposal Risks). Fragment drift is guarded by the palette contract's recomputation. The `waybar.css` fragments remain required until a follow-up change removes them.
 - **skill_resolution:** none (no skill paths were injected)
 
