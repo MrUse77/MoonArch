@@ -9,6 +9,7 @@ protected_paths=(
     home/.local/share/moonarch/themes/tokyo-night/ghostty.conf
     home/.local/share/moonarch/themes/tokyo-night/hyprland.conf
     home/.local/share/moonarch/themes/tokyo-night/manifest.toml
+    home/.local/share/moonarch/themes/tokyo-night/quickshell.json
     home/.local/share/moonarch/themes/tokyo-night/waybar.css
     Temas/Tokyo_Night/paleta.txt
 )
@@ -16,6 +17,7 @@ protected_files=(
     home/.local/share/moonarch/themes/tokyo-night/ghostty.conf
     home/.local/share/moonarch/themes/tokyo-night/hyprland.conf
     home/.local/share/moonarch/themes/tokyo-night/manifest.toml
+    home/.local/share/moonarch/themes/tokyo-night/quickshell.json
     home/.local/share/moonarch/themes/tokyo-night/waybar.css
     Temas/Tokyo_Night/paleta.txt
 )
@@ -25,6 +27,7 @@ declare -A protected_file_hashes=(
     [home/.local/share/moonarch/themes/tokyo-night/ghostty.conf]=7e37b35d301ae8061282a2798a83698c479b5312
     [home/.local/share/moonarch/themes/tokyo-night/hyprland.conf]=247001b754aad47ce14e9610e181946b96fea84a
     [home/.local/share/moonarch/themes/tokyo-night/manifest.toml]=45309b48d1ce282093fe64adb8ebb582d2983794
+    [home/.local/share/moonarch/themes/tokyo-night/quickshell.json]=794f4ed68deeb4a9275434b2565bcaebd91e3fa6
     [home/.local/share/moonarch/themes/tokyo-night/waybar.css]=2b39a86a7c986c48581e6d8aac83d6dc8ff3e830
     [Temas/Tokyo_Night/paleta.txt]=b51e9ab96664bd55b26cca8d5b9f59ff9a5c0080
 )
@@ -270,6 +273,73 @@ fragment_palette_value() {
     ' "$fragment"
 }
 
+fragment_json_value() {
+    local fragment="$1"
+    local key="$2"
+
+    awk -v wanted_key="$key" '
+        {
+            line = $0
+            sub(/^[[:space:]]+/, "", line)
+            if (line !~ /^"/) {
+                next
+            }
+            separator = index(line, ":")
+            if (!separator) {
+                next
+            }
+            if (substr(line, 2, separator - 3) != wanted_key) {
+                next
+            }
+            value = substr(line, separator + 1)
+            sub(/^[[:space:]]+/, "", value)
+            gsub(/[",]/, "", value)
+            print value
+            exit
+        }
+    ' "$fragment"
+}
+
+hex_mix() {
+    local hex_a="$1"
+    local hex_b="$2"
+    local t="$3"
+
+    awk -v hex_a="$hex_a" -v hex_b="$hex_b" -v t="$t" '
+        function hex_digit(c,    v) {
+            v = index("0123456789abcdef", tolower(c))
+            return v - 1
+        }
+        function hex2num(s,    v) {
+            return hex_digit(substr(s, 1, 1)) * 16 + hex_digit(substr(s, 2, 1))
+        }
+        function num2hex(n,    digits) {
+            n = int(n + 0.5)   # Math.round: half up
+            if (n < 0) n = 0
+            if (n > 255) n = 255
+            digits = "0123456789abcdef"
+            return substr(digits, int(n / 16) + 1, 1) substr(digits, n % 16 + 1, 1)
+        }
+        function clamp01(v) {
+            if (v < 0) return 0
+            if (v > 1) return 1
+            return v
+        }
+        BEGIN {
+            if (hex_a !~ /^#[0-9a-fA-F]{6}$/ || hex_b !~ /^#[0-9a-fA-F]{6}$/) {
+                exit
+            }
+            out = "#"
+            for (channel = 0; channel < 3; channel++) {
+                ca = hex2num(substr(hex_a, 2 + channel * 2, 2))
+                cb = hex2num(substr(hex_b, 2 + channel * 2, 2))
+                out = out num2hex(clamp01((ca + (cb - ca) * t) / 255.0) * 255)
+            }
+            print out
+        }
+    ' <<<""
+}
+
 assert_define() {
     local fragment="$1"
     local key="$2"
@@ -363,8 +433,9 @@ declare -A source_dirs=(
 verify_bundle_contract() {
     local actual_count=0
     local bundle id source_file file index cursor_text
-    local required_files=(manifest.toml hyprland.conf hyprland.lua waybar.css ghostty.conf)
+    local required_files=(manifest.toml hyprland.conf hyprland.lua waybar.css ghostty.conf quickshell.json)
     local aliases=(text_main bg_dark accent_blue urgent_red)
+    local fragment_alias token json_bg json_text json_gray
 
     [[ -L "$themes_root/current" ]] || fail 'current theme is not a symlink'
     assert_eq "$(readlink "$themes_root/current")" tokyo-night
@@ -391,6 +462,37 @@ verify_bundle_contract() {
         for alias in "${aliases[@]}"; do
             assert_define "$bundle/waybar.css" "$alias"
         done
+
+        assert_eq "$(fragment_json_value "$bundle/quickshell.json" version)" 1
+        for pair in "bg bg_dark" "text text_main" "accent accent_blue" "urgent urgent_red"; do
+            token="${pair%% *}"
+            fragment_alias="${pair#* }";
+            assert_mapping "$id Quickshell $token alias" \
+                "$(fragment_define_value "$bundle/waybar.css" "$fragment_alias")" \
+                "$(fragment_json_value "$bundle/quickshell.json" "$token")"
+        done
+        for pair in "2 success" "3 warning" "5 purple" "6 cyan" "8 gray"; do
+            index="${pair%% *}"
+            token="${pair#* }";
+            assert_mapping "$id Quickshell $token palette" \
+                "$(fragment_palette_value "$bundle/ghostty.conf" "$index")" \
+                "$(fragment_json_value "$bundle/quickshell.json" "$token")"
+        done
+        json_bg="$(fragment_json_value "$bundle/quickshell.json" bg)"
+        json_text="$(fragment_json_value "$bundle/quickshell.json" text)"
+        json_gray="$(fragment_json_value "$bundle/quickshell.json" gray)"
+        assert_mapping "$id Quickshell bgDeep mix" \
+            "$(hex_mix "$json_bg" "#000000" 0.35)" \
+            "$(fragment_json_value "$bundle/quickshell.json" bgDeep)"
+        assert_mapping "$id Quickshell surface mix" \
+            "$(hex_mix "$json_bg" "$json_gray" 0.32)" \
+            "$(fragment_json_value "$bundle/quickshell.json" surface)"
+        assert_mapping "$id Quickshell surfaceBright mix" \
+            "$(hex_mix "$json_bg" "$(fragment_setting_value "$bundle/ghostty.conf" foreground)" 0.08)" \
+            "$(fragment_json_value "$bundle/quickshell.json" surfaceBright)"
+        assert_mapping "$id Quickshell textDim mix" \
+            "$(hex_mix "$json_text" "$json_bg" 0.48)" \
+            "$(fragment_json_value "$bundle/quickshell.json" textDim)"
     done
 
     for id in "${!source_dirs[@]}"; do
