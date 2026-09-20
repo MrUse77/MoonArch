@@ -199,15 +199,15 @@ end
 -- The Tokyo Night bundle is intentionally immutable. Its legacy Hyprland border
 -- aliases predate the shared Waybar palette, so align the active consumer here
 -- without changing the bundle or affecting other selectable themes.
-local function shell_quote(value)
-	return "'" .. value:gsub("'", "'\\''") .. "'"
-end
-
+-- The active theme id comes from the bundle manifest: the previous readlink probe
+-- forked a subprocess on every config load, including reloads.
 local theme_link = os.getenv("HOME") .. "/.local/share/moonarch/themes/current"
-local theme_probe = io.popen("readlink -- " .. shell_quote(theme_link), "r")
-local active_theme = theme_probe and theme_probe:read("*l") or nil
-if theme_probe then
-	theme_probe:close()
+local active_theme
+local theme_manifest = io.open(theme_link .. "/manifest.toml", "r")
+if theme_manifest then
+	local manifest = theme_manifest:read("*a")
+	theme_manifest:close()
+	active_theme = manifest and manifest:match('id%s*=%s*"([^"]+)"')
 end
 
 if active_theme == "tokyo-night" then
