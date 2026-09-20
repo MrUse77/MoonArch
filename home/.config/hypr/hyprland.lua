@@ -377,7 +377,7 @@ hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen())
 -- hl.bind(mainMod .. " + T",           hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd("hyprctl switchxkblayout current next"))
 hl.bind("PRINT", hl.dsp.exec_cmd("hyprshot -m region --clipboard-only"))
-hl.bind("SUPER + SHIFT + L", hl.dsp.exec_cmd("hyprlock"))
+hl.bind(mainMod .. " + ALT + L", hl.dsp.exec_cmd("hyprlock")) -- moved off SHIFT+L, which now moves windows
 hl.bind(
 	mainMod .. " + Y",
 	hl.dsp.exec_cmd("ghostty --config-file=" .. os.getenv("HOME") .. "/.config/ghostty/config-clean -e yazi")
@@ -397,18 +397,75 @@ hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + up", hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + down", hl.dsp.focus({ direction = "down" }))
 
--- Switch workspaces with mainMod + [0-9]
--- Move active window to a workspace with mainMod + SHIFT + [0-9]
-for i = 1, 10 do
-	local key = i % 10 -- 10 maps to key 0
-	hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = i }))
-	hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
+-- Switch workspaces with mainMod + [1-N]: Nth workspace of the FOCUSED monitor.
+-- N comes from split-monitor-workspaces, so it survives a workspace_count or monitor change.
+local ws_count = smw_ok and smw.get_amount_of_workspaces() or 5
+for i = 1, ws_count do
+	local key = tostring(i)
+	if key == "10" then key = "0" end -- 10 maps to key 0 if a monitor ever holds 10
+	if smw_ok then
+		hl.bind(mainMod .. " + " .. key, smw.workspace(key))
+		hl.bind(mainMod .. " + SHIFT + " .. key, smw.move_to_workspace(key))
+	else
+		hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = i }))
+		hl.bind(mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
+	end
+end
+-- mainMod + 6-0 stay deliberately free: the digits only address the focused monitor.
+
+-- Additional workspace navigation, all of it relative to the focused monitor.
+--   h / l : previous / next workspace INSIDE the focused monitor (wraps around).
+--   SHIFT + h / l : send the ACTIVE WINDOW to that same workspace and follow it.
+if smw_ok then
+	hl.bind(mainMod .. " + h", smw.workspace("-1"))
+	hl.bind(mainMod .. " + l", smw.workspace("+1"))
+	hl.bind(mainMod .. " + SHIFT + h", smw.move_to_workspace("-1"))
+	hl.bind(mainMod .. " + SHIFT + l", smw.move_to_workspace("+1"))
+else
+	hl.bind(mainMod .. " + h", hl.dsp.focus({ workspace = "e-1" }))
+	hl.bind(mainMod .. " + l", hl.dsp.focus({ workspace = "e+1" }))
+	-- SHIFT + h / l need the plugin for relative moves; without it they stay unbound.
 end
 
--- Additional workspace navigation
-hl.bind(mainMod .. " + h", hl.dsp.focus({ workspace = "e-1" }))
-hl.bind(mainMod .. " + j", hl.dsp.focus({ workspace = "e-5" }))
-hl.bind(mainMod .. " + k", hl.dsp.focus({ workspace = "e+5" }))
+-- Neighbouring monitor in hl.get_monitors() order, wrapping around. Resolved on every
+-- keypress (never at load time) and with no monitor name or range size hardcoded.
+local function neighbour_monitor(step)
+	local monitors = hl.get_monitors()
+	local total = #monitors
+	if total < 2 then return nil end
+	local current = hl.get_active_monitor()
+	for i, monitor in ipairs(monitors) do
+		if current and monitor.id == current.id then
+			return monitors[((i - 1 + step) % total) + 1]
+		end
+	end
+	return nil
+end
+
+-- Runs `dispatch(name)` with the workspace the neighbouring monitor is already showing.
+local function on_neighbour_workspace(step, dispatch)
+	return function()
+		local target = neighbour_monitor(step)
+		local workspace = target and target.active_workspace
+		if workspace then
+			hl.dispatch(dispatch(workspace.name))
+		end
+	end
+end
+
+--   j / k : move FOCUS to the previous / next monitor, landing on the workspace that
+--           monitor is already showing. No workspace gets switched.
+hl.bind(mainMod .. " + j", on_neighbour_workspace(-1,
+	function(name) return hl.dsp.focus({ workspace = name }) end))
+hl.bind(mainMod .. " + k", on_neighbour_workspace(1,
+	function(name) return hl.dsp.focus({ workspace = name }) end))
+
+--   SHIFT + j / k : send the ACTIVE WINDOW to that same workspace and follow it there.
+hl.bind(mainMod .. " + SHIFT + j", on_neighbour_workspace(-1,
+	function(name) return hl.dsp.window.move({ workspace = name }) end))
+hl.bind(mainMod .. " + SHIFT + k", on_neighbour_workspace(1,
+	function(name) return hl.dsp.window.move({ workspace = name }) end))
+
 
 -- Example special workspace (scratchpad)
 hl.bind(mainMod .. " + S", hl.dsp.workspace.toggle_special("magic"))
