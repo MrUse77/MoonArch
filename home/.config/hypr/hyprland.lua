@@ -492,7 +492,7 @@ hl.window_rule({
 -- Float file dialogs
 hl.window_rule({
 	name = "float-dialogs",
-	match = { title = "Confirmacion|Abrir Achivo" },
+	match = { title = "(?i)(confirmaci[oó]n|abrir archivo)" },
 	float = true,
 })
 
