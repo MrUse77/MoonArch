@@ -11,13 +11,8 @@
 -- Create your files separately and then require them like this:
 -- require("myColors")
 
--- Lua package path for plugins cloned into ~/.config/hypr/plugins/
-package.path = package.path
-	.. ";"
-	.. os.getenv("HOME")
-	.. "/.config/hypr/plugins/?.lua;"
-	.. os.getenv("HOME")
-	.. "/.config/hypr/plugins/?/init.lua"
+-- require("plugins.*") resolves against ~/.config/hypr because Hyprland already sets
+-- package.path to "<config>/?.lua;<config>/?/init.lua", so no manual entry is needed.
 local smw_ok, smw = pcall(require, "plugins.split-monitor-workspaces")
 
 ------------------
