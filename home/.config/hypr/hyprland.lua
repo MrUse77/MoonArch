@@ -237,7 +237,7 @@ hl.animation({ leaf = "global", enabled = true, speed = 10, bezier = "default" }
 hl.animation({ leaf = "windows", enabled = true, speed = 4.5, bezier = "smooth" })
 hl.animation({ leaf = "windowsIn", enabled = true, speed = 5, bezier = "overshot", style = "popin 85%" })
 hl.animation({ leaf = "windowsOut", enabled = true, speed = 5, bezier = "smooth", style = "popin 85%" })
-hl.animation({ leaf = "windowsMove", enabled = true, speed = 5, bezier = "smooth" })
+hl.animation({ leaf = "windowsMove", enabled = true, speed = 4.5, bezier = "gentle" })
 hl.animation({ leaf = "fadeIn", enabled = true, speed = 3.5, bezier = "smooth" })
 hl.animation({ leaf = "fadeOut", enabled = true, speed = 3, bezier = "smooth" })
 hl.animation({ leaf = "fade", enabled = true, speed = 4, bezier = "smooth" })
