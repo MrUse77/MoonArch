@@ -225,14 +225,14 @@ end
 hl.curve("easeOutQuint", { type = "bezier", points = { { 0.23, 1 }, { 0.32, 1 } } })
 hl.curve("smooth", { type = "bezier", points = { { 0.5, 0 }, { 0.5, 1 } } })
 hl.curve("overshot", { type = "bezier", points = { { 0.13, 0.99 }, { 0.29, 1.05 } } })
-hl.curve("gentle", { type = "bezier", points = { { 0.25, 0.1 }, { 0.25, 1 } } })
+hl.curve("ease", { type = "bezier", points = { { 0.25, 0.1 }, { 0.25, 1 } } })
 
 -- Animation definitions
 hl.animation({ leaf = "global", enabled = true, speed = 10, bezier = "default" })
 hl.animation({ leaf = "windows", enabled = true, speed = 4.5, bezier = "smooth" })
 hl.animation({ leaf = "windowsIn", enabled = true, speed = 5, bezier = "overshot", style = "popin 85%" })
 hl.animation({ leaf = "windowsOut", enabled = true, speed = 5, bezier = "smooth", style = "popin 85%" })
-hl.animation({ leaf = "windowsMove", enabled = true, speed = 5, bezier = "smooth" })
+hl.animation({ leaf = "windowsMove", enabled = true, speed = 4.5, bezier = "ease" })
 hl.animation({ leaf = "fadeIn", enabled = true, speed = 3.5, bezier = "smooth" })
 hl.animation({ leaf = "fadeOut", enabled = true, speed = 3, bezier = "smooth" })
 hl.animation({ leaf = "fade", enabled = true, speed = 4, bezier = "smooth" })
@@ -249,12 +249,12 @@ hl.animation({ leaf = "fadeLayersIn", enabled = true, speed = 5, bezier = "smoot
 hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 3, bezier = "smooth" })
 hl.animation({ leaf = "border", enabled = true, speed = 6, bezier = "smooth" })
 hl.animation({ leaf = "borderangle", enabled = true, speed = 6, bezier = "smooth" })
-hl.animation({ leaf = "workspaces", enabled = true, speed = 4.5, bezier = "gentle", style = "slide" })
-hl.animation({ leaf = "workspacesIn", enabled = true, speed = 4, bezier = "gentle", style = "slide" })
-hl.animation({ leaf = "workspacesOut", enabled = true, speed = 4, bezier = "gentle", style = "slide" })
-hl.animation({ leaf = "specialWorkspace", enabled = true, speed = 4.5, bezier = "gentle", style = "slidefade 15%" })
-hl.animation({ leaf = "specialWorkspaceIn", enabled = true, speed = 4, bezier = "gentle", style = "slidefade 15%" })
-hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 4, bezier = "gentle", style = "slidefade 15%" })
+hl.animation({ leaf = "workspaces", enabled = true, speed = 4.5, bezier = "ease", style = "slide" })
+hl.animation({ leaf = "workspacesIn", enabled = true, speed = 4, bezier = "ease", style = "slide" })
+hl.animation({ leaf = "workspacesOut", enabled = true, speed = 4, bezier = "ease", style = "slide" })
+hl.animation({ leaf = "specialWorkspace", enabled = true, speed = 4.5, bezier = "ease", style = "slidefade 15%" })
+hl.animation({ leaf = "specialWorkspaceIn", enabled = true, speed = 4, bezier = "ease", style = "slidefade 15%" })
+hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 4, bezier = "ease", style = "slidefade 15%" })
 
 -- Ref https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
 -- "Smart gaps" / "No gaps when only"
