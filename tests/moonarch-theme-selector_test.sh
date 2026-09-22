@@ -335,6 +335,8 @@ autostart_block="$(sed -n '/hl.on("hyprland.start"/,/^end)/p' "$repo_root/home/.
 if grep -Eqw '(waybar|dunst|eww)' <<<"$autostart_block"; then
     fail 'Hyprland autostart starts a replaced bar, notification daemon, or widget host next to Selene'
 fi
+grep -Eq 'hl\.exec_cmd\("pgrep -x hypridle[^"]*\|\| hypridle' <<<"$autostart_block" \
+    || fail 'Hyprland autostart does not launch hypridle behind a pgrep liveness guard'
 # Submodule worktrees under home/ are not tracked configuration; exclude them
 # from the retired-stack sweep (their nix lock hashes can contain the words
 # case-insensitively, e.g. "ewW" inside a flake.lock hash).

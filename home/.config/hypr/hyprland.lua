@@ -68,6 +68,8 @@ hl.on("hyprland.start", function()
 		"/usr/lib/hyprpolkitagent/hyprpolkitagent & hyprctl setcursor volantes_cursors 24 & qs -c selene & hyprsunset"
 	)
 	hl.exec_cmd("hyprpm reload -n & hyprpaper & corectrl & /usr/lib/xdg-desktop-portal-hyprland")
+	-- Idle management; the pgrep guard keeps a config reload from spawning a second instance
+	hl.exec_cmd("pgrep -x hypridle || hypridle")
 end)
 
 -------------------------------
