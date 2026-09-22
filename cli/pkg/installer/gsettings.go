@@ -12,7 +12,6 @@ func ApplyGSettings() error {
 		value string
 	}{
 		{"gtk-theme", "TokyoNight-zk"},
-		{"icon-theme", "TokyoNight-SE"},
 		{"cursor-theme", "volantes_cursors"},
 		{"cursor-size", "24"},
 		{"font-name", "CaskaydiaMono Nerd Font Mono Bold 10"},

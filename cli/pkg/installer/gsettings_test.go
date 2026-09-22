@@ -24,7 +24,7 @@ func TestActionCatalogGSettingsAreExternalInStableOrder(t *testing.T) {
 			t.Errorf("unexpected gsettings command: %#v", action.Command)
 		}
 	}
-	if seen != 6 {
-		t.Fatalf("gsettings actions = %d, want 6", seen)
+	if seen != 5 {
+		t.Fatalf("gsettings actions = %d, want 5", seen)
 	}
 }
