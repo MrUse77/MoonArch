@@ -4,6 +4,10 @@
 # Si no es interactivo, salir
 [[ $- != *i* ]] && return
 
+# --- ESTADO DE ZSH ---
+# El repo no versiona este directorio: sin él no hay historial ni dump de completions.
+[[ -d "$HOME/.config/zsh" ]] || mkdir -p "$HOME/.config/zsh"
+
 # --- VARIABLES DE ENTORNO ---
 export EDITOR="nvim"
 export PATH="$HOME/.local/bin:$PATH"
@@ -37,7 +41,7 @@ if (( $+commands[zoxide] )); then
 fi
 
 # Oh My Posh (Prompt)
-# Asumimos queval "$(direnv hook zsh)"e está en ~/.local/bin que ya agregamos al PATH
+# Asumimos que está en ~/.local/bin que ya agregamos al PATH
 if (( $+commands[oh-my-posh] )); then
     eval "$(oh-my-posh init zsh --config "~/oh-my-posh/tokyonight_storm.omp.json")"
 else
@@ -68,7 +72,6 @@ alias grep='grep --color=auto'
 # --- COMPLETION ---
 #
 for plugin in \
-    "$HOME/.zsh_plugins/fzf-tab/fzf-tab.zsh" \
     "$HOME/.zsh_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" \
     "$HOME/.zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" \
     "$HOME/.zsh_plugins/zsh-history-substring-search/zsh-history-substring-search.zsh"
@@ -80,8 +83,16 @@ autoload -Uz compinit
 
 local zcompdump="$HOME/.config/zsh/zcompdump"
 
-if [[ -n "$zcompdump"(#qN.mh+24) ]]; then
+# Un dump de más de 24 horas dispara el compinit completo; uno fresco usa la vía rápida.
+# El qualifier va en forma normal porque la variante `(#q...)` exige una option de globbing global.
+local -a old_zcompdump
+old_zcompdump=("$zcompdump"(Nmh+24))
+
+if [[ ! -f "$zcompdump" ]] || (( $#old_zcompdump )); then
     compinit -i -d "$zcompdump"
+    # compinit no reescribe un dump que sigue siendo válido: sin este toque su mtime no avanza
+    # y el test de edad nunca vuelve a dar falso, dejando la vía lenta pegada para siempre.
+    [[ -f "$zcompdump" ]] && touch "$zcompdump"
 else
     compinit -C -d "$zcompdump"
 fi
@@ -89,6 +100,9 @@ fi
 if [[ ! -f "${zcompdump}.zwc" || "$zcompdump" -nt "${zcompdump}.zwc" ]]; then
     zcompile -U "$zcompdump"
 fi
+
+# fzf-tab envuelve los widgets de completions: debe cargarse después de compinit.
+[[ -f "$HOME/.zsh_plugins/fzf-tab/fzf-tab.zsh" ]] && source "$HOME/.zsh_plugins/fzf-tab/fzf-tab.zsh"
 
 
 autoload -Uz add-zsh-hook
@@ -151,16 +165,13 @@ HISTSIZE=5000
 SAVEHIST=5000
 setopt appendhistory sharehistory hist_ignore_space hist_ignore_all_dups
 
-bindkey -M viins '^?' backward-delete-char
-bindkey -M viins '^h' backward-delete-char
-
 # Added by LM Studio CLI (lms)
 export PATH="$PATH:$HOME/.lmstudio/bin"
 # End of LM Studio CLI section
 
 
 # pnpm
-export PNPM_HOME="/home/agustin/.local/share/pnpm"
+export PNPM_HOME="$HOME/.local/share/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -169,12 +180,18 @@ esac
 
 
 # Added by Antigravity CLI installer
-export PATH="/home/agustin/.local/bin:$PATH"
+# ($HOME/.local/bin ya se agrega al PATH al comienzo de este archivo.)
 
 # SSH agent
 export SSH_AUTH_SOCK="$HOME/.ssh/agent.sock"
 if ! pgrep -u "$USER" ssh-agent > /dev/null; then
 	rm -rf "$SSH_AUTH_SOCK"
 	ssh-agent -a "$SSH_AUTH_SOCK" > /dev/null
+fi
+
+# Agrega la clave con el agente ya arrancado o recién arrancado, sólo si el agente no tiene
+# ninguna identidad cargada: eso es lo que comprueba `ssh-add -l`. Es una simplificación
+# deliberada, no una comparación de huellas: un agente con otra clave no recibe id_ed25519.
+if ! ssh-add -l > /dev/null 2>&1; then
 	ssh-add -t 8h ~/.ssh/id_ed25519 2>/dev/null
 fi
