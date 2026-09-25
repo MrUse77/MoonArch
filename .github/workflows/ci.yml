@@ -11,6 +11,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Least-privilege token: every job in this workflow only reads the repository
+# and, for pull_request runs, the list of changed files.
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   # -----------------------------------------------------------
   # Validate PR commit messages follow Conventional Commits
@@ -53,6 +59,8 @@ jobs:
               - 'scripts/**'
               - 'Dockerfile.test'
               - 'test.sh'
+              - 'Temas/**'
+              - 'hyde_theme_palettes.txt'
               - 'tests/moonarch-theme-palette_test.sh'
               - 'tests/moonarch-theme-selector_test.sh'
               - 'tests/release-bridge_test.sh'
@@ -144,16 +152,26 @@ jobs:
     name: CI passed
     runs-on: ubuntu-latest
     if: always()
-    needs: [commitlint, cli, config, docs]
+    needs: [changes, commitlint, cli, config, docs]
     steps:
       - name: Check job results
         run: |
+          echo "changes:    ${{ needs.changes.result }}"
           echo "commitlint: ${{ needs.commitlint.result }}"
           echo "cli:        ${{ needs.cli.result }}"
           echo "config:     ${{ needs.config.result }}"
           echo "docs:       ${{ needs.docs.result }}"
 
-          # 'success' or 'skipped' are acceptable; anything else is a failure
+          # 'changes' must have actually run: if it fails, every downstream job is
+          # skipped and this gate would otherwise go green having validated nothing.
+          # It has no 'if:' condition, so 'skipped' is never a legitimate result.
+          if [[ "${{ needs.changes.result }}" != "success" ]]; then
+            echo "::error::The 'changes' job did not succeed; no CI validation was performed."
+            exit 1
+          fi
+
+          # 'success' or 'skipped' are acceptable for the remaining jobs; anything
+          # else is a failure
           for result in \
             "${{ needs.commitlint.result }}" \
             "${{ needs.cli.result }}" \

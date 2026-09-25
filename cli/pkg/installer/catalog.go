@@ -161,7 +161,7 @@ func paruBootstrapActions() []plan.ExternalAction {
 
 func gtkThemeActions() []plan.ExternalAction {
 	settings := []struct{ key, value string }{
-		{"gtk-theme", "TokyoNight-zk"}, {"icon-theme", "TokyoNight-SE"},
+		{"gtk-theme", "TokyoNight-zk"},
 		{"cursor-theme", "volantes_cursors"}, {"cursor-size", "24"},
 		{"font-name", "CaskaydiaMono Nerd Font Mono Bold 10"}, {"color-scheme", "prefer-dark"},
 	}
